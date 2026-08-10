@@ -1,5 +1,12 @@
-<title>LinkUp — proof of concept</title>
-<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Link.Up</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#fde262">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Link.Up">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <style>
   :root {
     --bg: #fde262; --bg-deep: #f2d044;
@@ -635,6 +642,7 @@ function sendPitch(){
                {me:false,text:demoReply(p)} ] });
     }
     $("chatdot").classList.add("show");
+    saveState();
     toast(`${p.name.split(",")[0]} accepterede din anmodning ✓`);
     if($("scr-chat").classList.contains("on")) renderThreads();
   },2800);
@@ -688,7 +696,7 @@ function renderThread(){
 }
 function sendMsg(){
   const v=$("draft").value.trim(); if(!v||!openThread) return;
-  openThread.msgs.push({me:true,text:v}); $("draft").value=""; renderThread();
+  openThread.msgs.push({me:true,text:v}); $("draft").value=""; saveState(); renderThread();
 }
 $("draft").addEventListener("keydown",(e)=>{ if(e.key==="Enter") sendMsg(); });
 
@@ -735,7 +743,7 @@ function renderMe(){
   [["producer","Producer"],["design","Grafisk designer"]].forEach(([k,lbl])=>{
     const c=document.createElement("button");
     c.className="chip"+(k===meProf?" on":""); c.textContent=lbl;
-    c.onclick=()=>{ meProf=k; renderMe(); };
+    c.onclick=()=>{ meProf=k; saveState(); renderMe(); };
     sw.appendChild(c);
   });
   const pills=$("me-pills"); pills.innerHTML="";
@@ -755,6 +763,22 @@ function renderMe(){
     fol.appendChild(btn);
     requestAnimationFrame(()=>drawArt(cv,f.type,f.seed,false));
   });
+}
+
+/* ================= persistens + PWA ================= */
+const STORE="linkup-state-v1";
+function saveState(){
+  try{ localStorage.setItem(STORE, JSON.stringify({ threads, meProf })); }catch{}
+}
+try{
+  const saved=JSON.parse(localStorage.getItem(STORE));
+  if(saved){
+    if(Array.isArray(saved.threads)&&saved.threads.length) threads=saved.threads;
+    if(saved.meProf) meProf=saved.meProf;
+  }
+}catch{}
+if("serviceWorker" in navigator && location.protocol.startsWith("http")){
+  addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 }
 
 buildOrder(); renderDeck();
