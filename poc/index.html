@@ -162,9 +162,16 @@
     font-family: var(--sans); font-size: 15px; min-height: 110px; resize: none; color: var(--ink);
   }
   .charcount { font-size: 11px; color: var(--muted); text-align: right; margin-top: -8px; font-weight: 700; }
+  .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+  .field label { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .field input { border: 2px solid var(--ink); border-radius: 12px; padding: 10px 12px; font-family: var(--sans); font-size: 15px; color: var(--ink); background: #fff; }
+  .field textarea { min-height: 80px; }
+  .me-edit-btn { width: 100%; margin-top: 4px; }
   .sheet .btn.primary { width: 100%; }
   .sheet .close-row { display: flex; justify-content: flex-end; }
   .link-btn { background: none; border: 0; color: var(--muted); font-size: 14px; cursor: pointer; font-family: var(--display); font-weight: 800; }
+  .close-x { width: 34px; height: 34px; background: var(--bg); border: 2px solid var(--ink); border-radius: 50%; box-shadow: 2.5px 2.5px 0 var(--ink); font-family: var(--display); font-size: 16px; font-weight: 800; color: var(--ink); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
+  .close-x:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--ink); }
 
   #story.overlay { align-items: center; justify-content: center; background: rgba(18,22,16,.92); }
   .story-box { width: 86%; max-width: 320px; display: flex; flex-direction: column; gap: 14px; align-items: center; }
@@ -306,9 +313,9 @@
     <div class="prof">
       <div class="prof-card">
         <div class="prof-top">
-          <div class="ava" style="background:linear-gradient(135deg,#175f55,#2c8c74)">FJ</div>
+          <div class="ava" id="me-ava" style="background:linear-gradient(135deg,#175f55,#2c8c74)">FJ</div>
           <div>
-            <div class="prof-name">Frederik, 29</div>
+            <div class="prof-name" id="me-name">Frederik, 29</div>
             <div class="prof-sub" id="me-sub">Producer · København</div>
           </div>
         </div>
@@ -316,6 +323,7 @@
         <div class="pills" id="me-pills"></div>
         <div class="prof-desc" id="me-desc"></div>
         <div class="folio" id="me-folio"></div>
+        <button class="btn ghost me-edit-btn" onclick="openEdit()">✏️ Redigér profil</button>
       </div>
       <div class="prof-note"><strong>Flere profiler, én konto.</strong> Skift mellem dine professioner ovenfor — hver profil har sine egne bulletpoints og sin egen portfolio, og vises kun for dem, der søger netop dét.</div>
     </div>
@@ -324,7 +332,7 @@
   <!-- profil sheet -->
   <div class="overlay" id="profsheet">
     <div class="sheet">
-      <div class="close-row"><button class="link-btn" onclick="closeProf()">Luk</button></div>
+      <div class="close-row"><button class="close-x" onclick="closeProf()" aria-label="Luk">✕</button></div>
       <div class="prof-top">
         <div class="ava" id="ps-ava"></div>
         <div>
@@ -336,14 +344,29 @@
       <div class="prof-desc" id="ps-desc"></div>
       <div style="font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.04em">PORTFOLIO</div>
       <div class="folio" id="ps-folio"></div>
-      <button class="btn primary linkup" id="ps-reach"><span class="linkchip"><svg viewBox="0 0 100 160" aria-hidden="true"><path d="M32 80 L32 48 A18 18 0 0 1 68 48 L68 80" fill="none" stroke="#FDE262" stroke-width="24"/><path d="M32 80 L32 112 A18 18 0 0 0 68 112 L68 80" fill="none" stroke="#005F5A" stroke-width="24"/></svg></span>Link up</button>
+      <button class="btn primary linkup" id="ps-reach"><span class="linkchip"><svg viewBox="0 0 100 160" aria-hidden="true"><path d="M32 80 L32 48 A18 18 0 0 1 68 48 L68 80" fill="none" stroke="#FDE262" stroke-width="24"/><path d="M32 80 L32 112 A18 18 0 0 0 68 112 L68 80" fill="none" stroke="#005F5A" stroke-width="24"/></svg></span>Ræk ud</button>
+    </div>
+  </div>
+
+  <!-- redigér profil sheet -->
+  <div class="overlay" id="editsheet">
+    <div class="sheet">
+      <div class="close-row"><button class="close-x" onclick="closeEdit()" aria-label="Luk">✕</button></div>
+      <h3>Redigér profil</h3>
+      <div class="field"><label for="ed-name">Navn</label><input id="ed-name" maxlength="40"></div>
+      <div class="field"><label for="ed-sub">Titel &amp; by</label><input id="ed-sub" maxlength="60" placeholder="Producer · København"></div>
+      <div class="field"><label for="ed-exp">Erfaring</label><input id="ed-exp" maxlength="40" placeholder="7 års erfaring"></div>
+      <div class="field"><label for="ed-edu">Uddannelse</label><input id="ed-edu" maxlength="40" placeholder="Selvlært, 2018"></div>
+      <div class="field"><label>Tilgængelighed</label><div class="pills" id="ed-badges" style="gap:9px"></div></div>
+      <div class="field"><label for="ed-desc">Beskrivelse</label><textarea id="ed-desc" maxlength="300"></textarea></div>
+      <button class="btn primary" onclick="saveEdit()">Gem profil</button>
     </div>
   </div>
 
   <!-- filter sheet -->
   <div class="overlay" id="filtersheet">
     <div class="sheet">
-      <div class="close-row"><button class="link-btn" onclick="closeFilter()">Luk</button></div>
+      <div class="close-row"><button class="close-x" onclick="closeFilter()" aria-label="Luk">✕</button></div>
       <h3>Tilgængelighed</h3>
       <div class="to">Vis kun profiler med disse badges</div>
       <div class="pills" id="fs-badges" style="gap:9px"></div>
@@ -354,8 +377,8 @@
   <!-- pitch sheet -->
   <div class="overlay" id="pitch">
     <div class="sheet">
-      <div class="close-row"><button class="link-btn" onclick="closePitch()">Luk</button></div>
-      <h3>Link up</h3>
+      <div class="close-row"><button class="close-x" onclick="closePitch()" aria-label="Luk">✕</button></div>
+      <h3>Ræk ud</h3>
       <div class="to" id="pitch-to"></div>
       <textarea id="pitch-text" maxlength="600" placeholder="Skriv en kort pitch — hvorfor vil du gerne i kontakt? (max 600 tegn)"></textarea>
       <div class="charcount"><span id="cc">0</span>/600</div>
@@ -371,7 +394,7 @@
         <button class="playbtn" id="story-play" style="display:none" aria-label="Afspil">▶</button>
       </div>
       <div class="cap" id="story-cap"></div>
-      <button class="link-btn" style="color:#d8e8dd" onclick="closeStory()">Luk</button>
+      <button class="close-x" style="margin:0 auto" onclick="closeStory()" aria-label="Luk">✕</button>
     </div>
   </div>
 
@@ -522,7 +545,7 @@ function buildCard(p){
       <div class="folio"></div>
       <div class="card-actions">
         <button class="btn more">Se profil</button>
-        <button class="btn reach linkup"><span class="linkchip"><svg viewBox="0 0 100 160" aria-hidden="true"><path d="M32 80 L32 48 A18 18 0 0 1 68 48 L68 80" fill="none" stroke="#FDE262" stroke-width="24"/><path d="M32 80 L32 112 A18 18 0 0 0 68 112 L68 80" fill="none" stroke="#005F5A" stroke-width="24"/></svg></span>Link up</button>
+        <button class="btn reach linkup"><span class="linkchip"><svg viewBox="0 0 100 160" aria-hidden="true"><path d="M32 80 L32 48 A18 18 0 0 1 68 48 L68 80" fill="none" stroke="#FDE262" stroke-width="24"/><path d="M32 80 L32 112 A18 18 0 0 0 68 112 L68 80" fill="none" stroke="#005F5A" stroke-width="24"/></svg></span>Ræk ud</button>
       </div>
     </div>`;
   const folio=el.querySelector(".folio");
@@ -740,8 +763,12 @@ function stopAudio(){ if(audioTimer){ clearInterval(audioTimer); audioTimer=null
 
 /* ================= min profil ================= */
 let meProf="producer";
+let meName="Frederik, 29";
+let meData=JSON.parse(JSON.stringify(ME));
 function renderMe(){
-  const m=ME[meProf];
+  const m=meData[meProf];
+  $("me-name").textContent=meName;
+  $("me-ava").textContent=initials(meName);
   $("me-sub").textContent=m.sub;
   const sw=$("me-switch"); sw.innerHTML="";
   [["producer","Producer"],["design","Grafisk designer"]].forEach(([k,lbl])=>{
@@ -769,18 +796,60 @@ function renderMe(){
   });
 }
 
+/* redigér profil */
+let edBadge="very";
+function openEdit(){
+  const m=meData[meProf];
+  $("ed-name").value=meName;
+  $("ed-sub").value=m.sub;
+  $("ed-exp").value=(m.pills.find(p=>p[0]==="💼")||["",""])[1];
+  $("ed-edu").value=(m.pills.find(p=>p[0]==="🎓")||["",""])[1];
+  edBadge=(m.pills.find(p=>p[0]===null)||[null,"very"])[1];
+  $("ed-desc").value=m.desc;
+  renderEdBadges();
+  $("editsheet").classList.add("on");
+}
+function renderEdBadges(){
+  const box=$("ed-badges"); box.innerHTML="";
+  Object.entries(BADGE).forEach(([k,b])=>{
+    const c=document.createElement("button");
+    c.className="chip"+(k===edBadge?" on":""); c.textContent=b.label;
+    c.onclick=()=>{ edBadge=k; renderEdBadges(); };
+    box.appendChild(c);
+  });
+}
+function closeEdit(){ $("editsheet").classList.remove("on"); }
+function saveEdit(){
+  const m=meData[meProf];
+  meName=$("ed-name").value.trim()||meName;
+  m.sub=$("ed-sub").value.trim()||m.sub;
+  m.pills=[["💼",$("ed-exp").value.trim()||"—"],["🎓",$("ed-edu").value.trim()||"—"],[null,edBadge]];
+  m.desc=$("ed-desc").value.trim();
+  saveState(); renderMe(); closeEdit(); toast("Profil gemt ✓");
+}
+
 /* ================= persistens + PWA ================= */
 const STORE="linkup-state-v1";
 function saveState(){
-  try{ localStorage.setItem(STORE, JSON.stringify({ threads, meProf })); }catch{}
+  try{ localStorage.setItem(STORE, JSON.stringify({ threads, meProf, meName, meData })); }catch{}
 }
 try{
   const saved=JSON.parse(localStorage.getItem(STORE));
   if(saved){
     if(Array.isArray(saved.threads)&&saved.threads.length) threads=saved.threads;
-    if(saved.meProf) meProf=saved.meProf;
+    if(saved.meProf&&ME[saved.meProf]) meProf=saved.meProf;
+    if(saved.meName) meName=saved.meName;
+    if(saved.meData&&saved.meData.producer&&saved.meData.design) meData=saved.meData;
   }
 }catch{}
+/* luk sheets ved tryk på baggrunden */
+document.querySelectorAll(".overlay").forEach(o=>{
+  o.addEventListener("click",(e)=>{
+    if(e.target!==o) return;
+    if(o.id==="story") closeStory(); else o.classList.remove("on");
+  });
+});
+
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
   addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 }
