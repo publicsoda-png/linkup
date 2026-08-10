@@ -172,6 +172,9 @@
   .field input { border: 2px solid var(--ink); border-radius: 12px; padding: 10px 12px; font-family: var(--sans); font-size: 15px; color: var(--ink); background: #fff; }
   .field textarea { min-height: 80px; }
   .me-edit-btn { width: 100%; margin-top: 4px; }
+  .ob-dots { display: flex; justify-content: center; gap: 7px; }
+  .ob-dots span { width: 9px; height: 9px; border-radius: 50%; border: 2px solid var(--ink); }
+  .ob-dots span.on { background: var(--ink); }
   .sheet .btn.primary { width: 100%; }
   .sheet .close-row { display: flex; justify-content: flex-end; }
   .link-btn { background: none; border: 0; color: var(--muted); font-size: 14px; cursor: pointer; font-family: var(--display); font-weight: 800; }
@@ -272,7 +275,7 @@
     </div>
     <div style="display:flex;flex-direction:column;gap:12px;align-items:center">
       <button class="btn ghost" onclick="enter()">Login</button>
-      <button class="btn primary" onclick="enter()">Opret Konto</button>
+      <button class="btn primary" onclick="openOb()">Opret Konto</button>
       <div class="login-note">Proof of concept — alle profiler og beskeder er demo-data.</div>
     </div>
   </div>
@@ -358,18 +361,46 @@
     </div>
   </div>
 
+  <!-- onboarding sheet -->
+  <div class="overlay" id="obsheet">
+    <div class="sheet">
+      <div class="close-row"><button class="close-x" onclick="closeOb()" aria-label="Luk">✕</button></div>
+      <h3 id="ob-title">Velkommen 👋</h3>
+      <div id="ob-s1">
+        <div class="field"><label for="ob-name">Hvad hedder du?</label><input id="ob-name" maxlength="40" placeholder="Fx Frederik, 29"></div>
+        <div class="field"><label for="ob-prof">Din profession</label><input id="ob-prof" maxlength="40" placeholder="Producer, Fotograf, Vokalist…"></div>
+      </div>
+      <div id="ob-s2" hidden>
+        <div class="field"><label for="ob-city">By</label><input id="ob-city" maxlength="30" placeholder="København"></div>
+        <div class="field"><label for="ob-exp">Erfaring</label><input id="ob-exp" maxlength="40" placeholder="Fx 5 års erfaring"></div>
+        <div class="field"><label for="ob-edu">Uddannelse</label><input id="ob-edu" maxlength="40" placeholder="Fx Selvlært, 2020"></div>
+      </div>
+      <div id="ob-s3" hidden>
+        <div class="field"><label>Hvor åben er du for nye projekter?</label><div class="pills" id="ob-badges" style="gap:9px"></div></div>
+        <div class="field"><label for="ob-desc">Kort om dig og det, du laver</label><textarea id="ob-desc" maxlength="300" placeholder="Hvad laver du, og hvem leder du efter?"></textarea></div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn ghost" id="ob-back" style="width:auto;flex:1" onclick="obBack()">Tilbage</button>
+        <button class="btn primary" id="ob-next" style="flex:2" onclick="obNext()">Videre</button>
+      </div>
+      <div class="ob-dots" id="ob-dots"></div>
+    </div>
+  </div>
+
   <!-- redigér profil sheet -->
   <div class="overlay" id="editsheet">
     <div class="sheet">
       <div class="close-row"><button class="close-x" onclick="closeEdit()" aria-label="Luk">✕</button></div>
-      <h3>Redigér profil</h3>
+      <h3 id="ed-title">Redigér profil</h3>
       <div class="field"><label for="ed-name">Navn</label><input id="ed-name" maxlength="40"></div>
+      <div class="field"><label for="ed-label">Profession</label><input id="ed-label" maxlength="40" placeholder="Producer, Fotograf…"></div>
       <div class="field"><label for="ed-sub">Titel &amp; by</label><input id="ed-sub" maxlength="60" placeholder="Producer · København"></div>
       <div class="field"><label for="ed-exp">Erfaring</label><input id="ed-exp" maxlength="40" placeholder="7 års erfaring"></div>
       <div class="field"><label for="ed-edu">Uddannelse</label><input id="ed-edu" maxlength="40" placeholder="Selvlært, 2018"></div>
       <div class="field"><label>Tilgængelighed</label><div class="pills" id="ed-badges" style="gap:9px"></div></div>
       <div class="field"><label for="ed-desc">Beskrivelse</label><textarea id="ed-desc" maxlength="300"></textarea></div>
       <button class="btn primary" onclick="saveEdit()">Gem profil</button>
+      <button class="btn ghost" id="ed-delete" style="width:100%;color:#c0392b" onclick="deleteProf()">Slet denne profil</button>
     </div>
   </div>
 
@@ -449,10 +480,10 @@ const PEOPLE = [
     folio:[{type:"audio",cap:"Før/efter-klip · mix",seed:52},{type:"photo",cap:"Rummet i NV",seed:6}] },
 ];
 const ME = {
-  producer: { sub:"Producer · København", pills:[["💼","7 års erfaring"],["🎓","Selvlært, 2018"],[null,"very"]],
+  producer: { label:"Producer", sub:"Producer · København", pills:[["💼","7 års erfaring"],["🎓","Selvlært, 2018"],[null,"very"]],
     desc:"Drain, cloud og pluggnb. Bygger komplette lydbilleder og har eget bibliotek af arps og loops.",
     folio:[{type:"audio",cap:"Arp · 132 BPM · C#m",seed:61},{type:"audio",cap:"Loop · 146 BPM",seed:71}] },
-  design: { sub:"Grafisk designer · København", pills:[["💼","5 års erfaring"],["🎓","Selvlært, 2020"],[null,"special"]],
+  design: { label:"Grafisk designer", sub:"Grafisk designer · København", pills:[["💼","5 års erfaring"],["🎓","Selvlært, 2020"],[null,"special"]],
     desc:"Brand-design, emballage og covers. Driver til daglig tre brands og designer alt selv.",
     folio:[{type:"type",cap:"Brand-arbejde, 2026",seed:81},{type:"photo",cap:"Emballage-design",seed:91}] },
 };
@@ -793,12 +824,16 @@ function renderMe(){
   $("me-ava").textContent=initials(meName);
   $("me-sub").textContent=m.sub;
   const sw=$("me-switch"); sw.innerHTML="";
-  [["producer","Producer"],["design","Grafisk designer"]].forEach(([k,lbl])=>{
+  Object.entries(meData).forEach(([k,prof])=>{
     const c=document.createElement("button");
-    c.className="chip"+(k===meProf?" on":""); c.textContent=lbl;
+    c.className="chip"+(k===meProf?" on":""); c.textContent=prof.label||k;
     c.onclick=()=>{ meProf=k; saveState(); renderMe(); };
     sw.appendChild(c);
   });
+  const add=document.createElement("button");
+  add.className="chip"; add.textContent="+ Ny profil"; add.style.borderStyle="dashed";
+  add.onclick=()=>openEdit(true);
+  sw.appendChild(add);
   const pills=$("me-pills"); pills.innerHTML="";
   m.pills.forEach(([ic,val])=>{
     const s=document.createElement("span");
@@ -820,17 +855,35 @@ function renderMe(){
 }
 
 /* redigér profil */
-let edBadge="very";
-function openEdit(){
-  const m=meData[meProf];
-  $("ed-name").value=meName;
-  $("ed-sub").value=m.sub;
-  $("ed-exp").value=(m.pills.find(p=>p[0]==="💼")||["",""])[1];
-  $("ed-edu").value=(m.pills.find(p=>p[0]==="🎓")||["",""])[1];
-  edBadge=(m.pills.find(p=>p[0]===null)||[null,"very"])[1];
-  $("ed-desc").value=m.desc;
+let edBadge="very", edNew=false;
+function openEdit(isNew){
+  edNew=!!isNew;
+  $("ed-title").textContent=edNew?"Ny profil":"Redigér profil";
+  $("ed-delete").style.display=(!edNew && Object.keys(meData).length>1)?"block":"none";
+  if(edNew){
+    $("ed-name").value=meName; $("ed-label").value=""; $("ed-sub").value="";
+    $("ed-exp").value=""; $("ed-edu").value=""; $("ed-desc").value="";
+    edBadge="open";
+  } else {
+    const m=meData[meProf];
+    $("ed-name").value=meName;
+    $("ed-label").value=m.label||"";
+    $("ed-sub").value=m.sub;
+    $("ed-exp").value=(m.pills.find(p=>p[0]==="💼")||["",""])[1];
+    $("ed-edu").value=(m.pills.find(p=>p[0]==="🎓")||["",""])[1];
+    edBadge=(m.pills.find(p=>p[0]===null)||[null,"very"])[1];
+    $("ed-desc").value=m.desc;
+  }
   renderEdBadges();
   $("editsheet").classList.add("on");
+}
+function deleteProf(){
+  const m=meData[meProf];
+  if(Object.keys(meData).length<2) return;
+  if(!confirm(`Slet profilen "${m.label||meProf}"?`)) return;
+  delete meData[meProf];
+  meProf=Object.keys(meData)[0];
+  saveState(); closeEdit(); renderMe(); toast("Profil slettet");
 }
 function renderEdBadges(){
   const box=$("ed-badges"); box.innerHTML="";
@@ -843,12 +896,61 @@ function renderEdBadges(){
 }
 function closeEdit(){ $("editsheet").classList.remove("on"); }
 function saveEdit(){
-  const m=meData[meProf];
+  const label=$("ed-label").value.trim();
+  if(edNew && !label){ toast("Giv profilen en profession."); return; }
+  let m;
+  if(edNew){
+    const key="p"+Date.now().toString(36);
+    m=meData[key]={label:label, sub:"", pills:[], desc:"", folio:[]};
+    meProf=key;
+  } else {
+    m=meData[meProf];
+    if(label) m.label=label;
+  }
   meName=$("ed-name").value.trim()||meName;
-  m.sub=$("ed-sub").value.trim()||m.sub;
+  m.sub=$("ed-sub").value.trim()||m.sub||(m.label+" · København");
   m.pills=[["💼",$("ed-exp").value.trim()||"—"],["🎓",$("ed-edu").value.trim()||"—"],[null,edBadge]];
   m.desc=$("ed-desc").value.trim();
-  saveState(); renderMe(); closeEdit(); toast("Profil gemt ✓");
+  saveState(); renderMe(); closeEdit(); toast(edNew?"Profil oprettet ✓":"Profil gemt ✓");
+}
+
+/* onboarding */
+let obStep=1, obBadge="open";
+function openOb(){ obStep=1; obBadge="open"; showObStep(); $("obsheet").classList.add("on"); }
+function closeOb(){ $("obsheet").classList.remove("on"); }
+function showObStep(){
+  for(let i=1;i<=3;i++) $("ob-s"+i).hidden=(i!==obStep);
+  $("ob-back").style.visibility=obStep>1?"visible":"hidden";
+  $("ob-next").textContent=obStep<3?"Videre":"Kom i gang 🚀";
+  $("ob-title").textContent=["Velkommen 👋","Din baggrund","Næsten færdig"][obStep-1];
+  const d=$("ob-dots"); d.innerHTML="";
+  for(let i=1;i<=3;i++){ const s=document.createElement("span"); if(i===obStep) s.className="on"; d.appendChild(s); }
+  if(obStep===3) renderObBadges();
+}
+function renderObBadges(){
+  const box=$("ob-badges"); box.innerHTML="";
+  Object.entries(BADGE).forEach(([k,b])=>{
+    const c=document.createElement("button");
+    c.className="chip"+(k===obBadge?" on":""); c.textContent=b.label;
+    c.onclick=()=>{ obBadge=k; renderObBadges(); };
+    box.appendChild(c);
+  });
+}
+function obBack(){ if(obStep>1){ obStep--; showObStep(); } }
+function obNext(){
+  if(obStep===1 && (!$("ob-name").value.trim() || !$("ob-prof").value.trim())){ toast("Udfyld navn og profession først."); return; }
+  if(obStep<3){ obStep++; showObStep(); return; }
+  const label=$("ob-prof").value.trim();
+  const city=$("ob-city").value.trim()||"København";
+  meName=$("ob-name").value.trim();
+  const key="p"+Date.now().toString(36);
+  meData={};
+  meData[key]={label:label, sub:label+" · "+city,
+    pills:[["💼",$("ob-exp").value.trim()||"Ny på Link.Up"],["🎓",$("ob-edu").value.trim()||"—"],[null,obBadge]],
+    desc:$("ob-desc").value.trim(), folio:[]};
+  meProf=key;
+  saveState(); closeOb(); enter(); go("me");
+  toast("Velkommen, "+meName.split(",")[0]+" ✓");
 }
 
 /* ================= persistens + PWA ================= */
@@ -860,11 +962,17 @@ try{
   const saved=JSON.parse(localStorage.getItem(STORE));
   if(saved){
     if(Array.isArray(saved.threads)&&saved.threads.length) threads=saved.threads;
-    if(saved.meProf&&ME[saved.meProf]) meProf=saved.meProf;
     if(saved.meName) meName=saved.meName;
-    if(saved.meData&&saved.meData.producer&&saved.meData.design) meData=saved.meData;
+    if(saved.meData&&Object.keys(saved.meData).length) meData=saved.meData;
+    if(saved.meProf&&meData[saved.meProf]) meProf=saved.meProf;
   }
 }catch{}
+if(!meData[meProf]) meProf=Object.keys(meData)[0];
+Object.entries(meData).forEach(([k,m])=>{
+  if(!m.label) m.label={producer:"Producer",design:"Grafisk designer"}[k]||k;
+  if(!Array.isArray(m.folio)) m.folio=[];
+  if(!Array.isArray(m.pills)) m.pills=[["💼","—"],["🎓","—"],[null,"open"]];
+});
 /* luk sheets ved tryk på baggrunden */
 document.querySelectorAll(".overlay").forEach(o=>{
   o.addEventListener("click",(e)=>{
