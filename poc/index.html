@@ -125,6 +125,10 @@
   .card-actions .reach { background: var(--teal); color: #fff; }
   .card-actions .reach:hover { background: var(--teal-dark); }
   .card-actions .more { background: var(--teal-soft); color: var(--ink); }
+  /* officiel Link up-knap: ikon-chip (salvie #78BFA1) + tekst */
+  .btn.linkup { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+  .linkchip { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; background: #78BFA1; border: 1.5px solid var(--ink); border-radius: 6px; flex: 0 0 auto; }
+  .linkchip svg { width: 11px; height: 15px; display: block; }
   .deck-hint { text-align: center; font-size: 10.5px; color: var(--ink); opacity: .55; padding-bottom: 6px; letter-spacing: .08em; font-weight: 700; }
   .empty {
     position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
@@ -332,7 +336,7 @@
       <div class="prof-desc" id="ps-desc"></div>
       <div style="font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.04em">PORTFOLIO</div>
       <div class="folio" id="ps-folio"></div>
-      <button class="btn primary" id="ps-reach">Ræk ud</button>
+      <button class="btn primary linkup" id="ps-reach"><span class="linkchip"><svg viewBox="0 0 100 160" aria-hidden="true"><path d="M32 80 L32 48 A18 18 0 0 1 68 48 L68 80" fill="none" stroke="#FDE262" stroke-width="24"/><path d="M32 80 L32 112 A18 18 0 0 0 68 112 L68 80" fill="none" stroke="#005F5A" stroke-width="24"/></svg></span>Link up</button>
     </div>
   </div>
 
@@ -351,7 +355,7 @@
   <div class="overlay" id="pitch">
     <div class="sheet">
       <div class="close-row"><button class="link-btn" onclick="closePitch()">Luk</button></div>
-      <h3>Ræk ud</h3>
+      <h3>Link up</h3>
       <div class="to" id="pitch-to"></div>
       <textarea id="pitch-text" maxlength="600" placeholder="Skriv en kort pitch — hvorfor vil du gerne i kontakt? (max 600 tegn)"></textarea>
       <div class="charcount"><span id="cc">0</span>/600</div>
@@ -518,7 +522,7 @@ function buildCard(p){
       <div class="folio"></div>
       <div class="card-actions">
         <button class="btn more">Se profil</button>
-        <button class="btn reach">Ræk ud</button>
+        <button class="btn reach linkup"><span class="linkchip"><svg viewBox="0 0 100 160" aria-hidden="true"><path d="M32 80 L32 48 A18 18 0 0 1 68 48 L68 80" fill="none" stroke="#FDE262" stroke-width="24"/><path d="M32 80 L32 112 A18 18 0 0 0 68 112 L68 80" fill="none" stroke="#005F5A" stroke-width="24"/></svg></span>Link up</button>
       </div>
     </div>`;
   const folio=el.querySelector(".folio");
