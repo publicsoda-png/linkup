@@ -258,7 +258,7 @@
   <div class="screen" id="scr-find">
     <div class="topbar">
       <div class="logo">Link.Up</div>
-      <button class="round-ic" title="Filtre" aria-label="Filtre">⚙</button>
+      <button class="round-ic" title="Filtre" aria-label="Filtre" onclick="openFilter()">⚙</button>
     </div>
     <div class="search-wrap">
       <div class="search-box">
@@ -312,6 +312,36 @@
         <div class="folio" id="me-folio"></div>
       </div>
       <div class="prof-note"><strong>Flere profiler, én konto.</strong> Skift mellem dine professioner ovenfor — hver profil har sine egne bulletpoints og sin egen portfolio, og vises kun for dem, der søger netop dét.</div>
+    </div>
+  </div>
+
+  <!-- profil sheet -->
+  <div class="overlay" id="profsheet">
+    <div class="sheet">
+      <div class="close-row"><button class="link-btn" onclick="closeProf()">Luk</button></div>
+      <div class="prof-top">
+        <div class="ava" id="ps-ava"></div>
+        <div>
+          <div class="prof-name" id="ps-name"></div>
+          <div class="prof-sub" id="ps-role"></div>
+        </div>
+      </div>
+      <div class="pills" id="ps-pills"></div>
+      <div class="prof-desc" id="ps-desc"></div>
+      <div style="font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.04em">PORTFOLIO</div>
+      <div class="folio" id="ps-folio"></div>
+      <button class="btn primary" id="ps-reach">Ræk ud</button>
+    </div>
+  </div>
+
+  <!-- filter sheet -->
+  <div class="overlay" id="filtersheet">
+    <div class="sheet">
+      <div class="close-row"><button class="link-btn" onclick="closeFilter()">Luk</button></div>
+      <h3>Tilgængelighed</h3>
+      <div class="to">Vis kun profiler med disse badges</div>
+      <div class="pills" id="fs-badges" style="gap:9px"></div>
+      <button class="btn primary" onclick="applyFilter()">Vis profiler</button>
     </div>
   </div>
 
@@ -476,6 +506,7 @@ function buildOrder(){
     const hay=(p.role+" "+p.area).toLowerCase();
     if(activeFilter && !hay.includes(activeFilter)) return false;
     if(q && !hay.includes(q) && !p.name.toLowerCase().includes(q)) return false;
+    if(!badgeFilter.has(p.badge)) return false;
     return true;
   }).map(p=>p.id);
 }
@@ -510,9 +541,47 @@ function buildCard(p){
     folio.appendChild(btn);
   });
   el.querySelector(".reach").onclick=(e)=>{ e.stopPropagation(); openPitch(p); };
-  el.querySelector(".more").onclick=(e)=>{ e.stopPropagation(); toast(p.desc); };
+  el.querySelector(".more").onclick=(e)=>{ e.stopPropagation(); openProf(p); };
   return el;
 }
+
+/* profil-sheet */
+function openProf(p){
+  const b=BADGE[p.badge];
+  $("ps-ava").style.background=avaColor(p.id); $("ps-ava").textContent=initials(p.name);
+  $("ps-name").textContent=p.name; $("ps-role").textContent=p.role;
+  $("ps-pills").innerHTML=`<span class="pill">💼 ${p.exp}</span><span class="pill">🎓 ${p.edu}</span><span class="pill ${b.cls}">📅 ${b.label}</span>`;
+  $("ps-desc").textContent=p.desc;
+  const fol=$("ps-folio"); fol.innerHTML="";
+  p.folio.forEach(f=>{
+    const btn=document.createElement("button");
+    btn.title=f.cap; btn.setAttribute("aria-label",f.cap);
+    const cv=document.createElement("canvas"); btn.appendChild(cv);
+    btn.onclick=()=>openStory(f);
+    fol.appendChild(btn);
+    requestAnimationFrame(()=>drawArt(cv,f.type,f.seed,false));
+  });
+  $("ps-reach").onclick=()=>{ closeProf(); openPitch(p); };
+  $("profsheet").classList.add("on");
+}
+function closeProf(){ $("profsheet").classList.remove("on"); }
+
+/* tilgængeligheds-filter */
+let badgeFilter=new Set(Object.keys(BADGE));
+function openFilter(){
+  const el=$("fs-badges"); el.innerHTML="";
+  Object.entries(BADGE).forEach(([k,b])=>{
+    const s=document.createElement("button");
+    s.className="pill "+b.cls; s.textContent="📅 "+b.label;
+    s.style.cursor="pointer"; s.style.border="0"; s.style.fontFamily="var(--sans)";
+    s.style.opacity=badgeFilter.has(k)?"1":".35";
+    s.onclick=()=>{ badgeFilter.has(k)?badgeFilter.delete(k):badgeFilter.add(k); s.style.opacity=badgeFilter.has(k)?"1":".35"; };
+    el.appendChild(s);
+  });
+  $("filtersheet").classList.add("on");
+}
+function closeFilter(){ $("filtersheet").classList.remove("on"); }
+function applyFilter(){ closeFilter(); buildOrder(); renderDeck(); }
 
 const deck=$("deck");
 function renderDeck(){

@@ -1,470 +1,395 @@
-<title>KOLLAB — din næste collab er ét swipe væk</title>
+<title>Link.Up — Start connecting</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Link.Up er netværksappen, der kombinerer det bedste fra LinkedIn og Tinder: find folk med præcis de kompetencer, du mangler.">
 <style>
   :root {
-    --bg: #141218;
-    --surface: #1d1a24;
-    --raised: #262230;
-    --line: #332e3f;
-    --text: #f0edf5;
-    --muted: #9a93a8;
-    --accent: #ff5d73;
-    --accent-dim: #b23e50;
-    --ok: #7de2a8;
-    --mono: "SF Mono", Menlo, Consolas, monospace;
+    --grad-a: #dff2f6; --grad-b: #b8dfe8;
+    --teal: #2d6e80; --teal-dark: #235663; --teal-soft: #e4f1f4;
+    --ink: #1d2b30; --muted: #5d7078; --card: #ffffff;
+    --line: #cfe1e7; --ok: #3ba776; --warn: #d99a2b; --hot: #c95f7b;
     --sans: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { scroll-behavior: smooth; }
   body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    font-size: 17px;
-    line-height: 1.6;
+    background: linear-gradient(165deg, var(--grad-a), var(--grad-b) 60%, #a6d4e0);
+    color: var(--ink); font-family: var(--sans); font-size: 17px; line-height: 1.6;
     -webkit-font-smoothing: antialiased;
   }
-  .wrap { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
 
-  /* ---------- header ---------- */
-  header {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 22px 0;
-  }
+  header { display: flex; justify-content: space-between; align-items: center; padding: 24px 0; }
   .logo {
-    font-weight: 800; letter-spacing: .14em; font-size: 15px;
+    font-weight: 800; color: var(--teal); font-size: 28px; letter-spacing: -.02em;
+    transform: rotate(-2deg); display: inline-block; line-height: 1;
   }
-  .logo span { color: var(--accent); }
-  .wip {
-    font-family: var(--mono); font-size: 11px; color: var(--muted);
-    border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px;
-    letter-spacing: .08em;
+  .logo small {
+    display: block; font-weight: 400; font-size: 10px; letter-spacing: .1em;
+    color: var(--muted); font-style: italic; margin-top: 3px;
+  }
+  .try-btn {
+    background: #fff; color: var(--teal); border: 0; border-radius: 999px;
+    padding: 11px 20px; font-weight: 700; font-size: 14px; cursor: pointer;
+    text-decoration: none; box-shadow: 0 3px 10px rgba(29,60,70,.15); font-family: var(--sans);
   }
 
-  /* ---------- hero ---------- */
-  .hero {
-    display: grid; grid-template-columns: 1.1fr .9fr; gap: 48px;
-    align-items: center; padding: 56px 0 88px;
-  }
+  .hero { display: grid; grid-template-columns: 1.05fr .95fr; gap: 56px; align-items: center; padding: 48px 0 84px; }
   .eyebrow {
-    font-family: var(--mono); font-size: 12px; letter-spacing: .18em;
-    text-transform: uppercase; color: var(--accent); margin-bottom: 18px;
+    display: inline-block; background: #fff; color: var(--teal); font-size: 12px;
+    font-weight: 700; letter-spacing: .1em; border-radius: 999px; padding: 7px 15px;
+    margin-bottom: 20px; box-shadow: 0 2px 8px rgba(29,60,70,.1);
   }
   h1 {
-    font-size: clamp(38px, 5.2vw, 58px); font-weight: 800;
-    line-height: 1.05; letter-spacing: -.02em; text-wrap: balance;
-    margin-bottom: 22px;
+    font-size: clamp(36px, 5vw, 54px); font-weight: 800; line-height: 1.07;
+    letter-spacing: -.02em; text-wrap: balance; margin-bottom: 20px;
   }
-  h1 em {
-    font-style: normal;
-    box-shadow: inset 0 -.14em 0 var(--accent);
-  }
-  .sub {
-    color: var(--muted); max-width: 46ch; margin-bottom: 34px; font-size: 18px;
-  }
+  h1 em { font-style: normal; color: var(--teal); }
+  .sub { color: var(--muted); font-size: 18px; max-width: 46ch; margin-bottom: 32px; }
+  .sub strong { color: var(--ink); }
+
   form.waitlist { display: flex; gap: 10px; max-width: 460px; }
   .waitlist input {
-    flex: 1; background: var(--surface); border: 1px solid var(--line);
-    border-radius: 10px; padding: 14px 16px; color: var(--text); font-size: 16px;
-    font-family: var(--sans);
+    flex: 1; background: #fff; border: 1px solid var(--line); border-radius: 999px;
+    padding: 14px 18px; font-size: 16px; font-family: var(--sans); color: var(--ink);
   }
   .waitlist input::placeholder { color: var(--muted); }
-  .waitlist input:focus, .waitlist button:focus-visible, .card-btns button:focus-visible {
-    outline: 2px solid var(--accent); outline-offset: 2px;
-  }
+  .waitlist input:focus, .waitlist button:focus-visible, .try-btn:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
   .waitlist button {
-    background: var(--accent); color: #1b0b10; border: 0; border-radius: 10px;
-    padding: 14px 22px; font-size: 16px; font-weight: 700; cursor: pointer;
+    background: var(--teal); color: #fff; border: 0; border-radius: 999px;
+    padding: 14px 24px; font-size: 16px; font-weight: 700; cursor: pointer;
     font-family: var(--sans); white-space: nowrap;
   }
-  .waitlist button:hover { background: #ff778a; }
-  .form-note {
-    font-family: var(--mono); font-size: 12px; color: var(--muted); margin-top: 12px;
-  }
-  .toast {
-    margin-top: 14px; font-size: 15px; color: var(--ok); display: none;
-  }
+  .waitlist button:hover { background: var(--teal-dark); }
+  .form-note { font-size: 13px; color: var(--muted); margin-top: 12px; }
+  .toast { margin-top: 14px; font-size: 15px; color: var(--teal); font-weight: 600; display: none; }
   .toast.show { display: block; }
 
-  /* ---------- card deck ---------- */
-  .deck-zone { position: relative; }
-  .deck {
-    position: relative; height: 430px; touch-action: none;
+  /* ---------- phone demo ---------- */
+  .phone-demo {
+    width: 300px; margin: 0 auto; background: #fff; border-radius: 28px;
+    box-shadow: 0 24px 60px rgba(29,60,70,.28); padding: 14px 14px 18px;
+    display: flex; flex-direction: column; gap: 12px;
   }
-  .card {
-    position: absolute; inset: 0; margin: auto;
-    width: min(300px, 82%); height: 400px;
-    background: var(--raised); border: 1px solid var(--line); border-radius: 18px;
-    padding: 18px; display: flex; flex-direction: column; gap: 12px;
-    user-select: none; -webkit-user-select: none; cursor: grab;
-    transition: transform .35s ease, opacity .35s ease;
-    will-change: transform;
+  .phone-demo .bar { display: flex; justify-content: space-between; align-items: center; padding: 2px 4px; }
+  .phone-demo .bar .logo { font-size: 17px; }
+  .searchpill {
+    background: var(--teal-soft); border-radius: 999px; padding: 9px 14px;
+    font-size: 13px; color: var(--muted);
   }
-  .card.dragging { transition: none; cursor: grabbing; }
-  .card .art {
-    flex: 1; border-radius: 10px; background: var(--surface);
-    display: flex; align-items: center; justify-content: center; overflow: hidden;
+  .democard {
+    background: linear-gradient(180deg, var(--grad-a), #fff 45%);
+    border: 1px solid var(--line); border-radius: 18px; overflow: hidden;
   }
-  .card canvas { width: 100%; height: 100%; display: block; }
-  .card .who { font-weight: 800; font-size: 20px; letter-spacing: -.01em; }
-  .card .meta {
-    font-family: var(--mono); font-size: 12px; color: var(--muted);
-    letter-spacing: .04em;
+  .democard .photo { height: 150px; position: relative; }
+  .democard .photo canvas { width: 100%; height: 100%; display: block; }
+  .democard .info { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .democard .who { font-weight: 800; font-size: 17px; }
+  .democard .role { color: var(--muted); font-size: 12.5px; margin-top: -6px; }
+  .pills { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pill {
+    background: var(--teal); color: #fff; border-radius: 999px; font-size: 10.5px;
+    padding: 5px 10px; display: inline-flex; gap: 5px; align-items: center;
   }
-  .card .seeks {
-    font-family: var(--mono); font-size: 12px; color: var(--accent);
-    letter-spacing: .06em;
+  .pill.b-active { background: var(--hot); }
+  .pill.b-open { background: var(--ok); }
+  .pill.b-special { background: var(--warn); }
+  .folio { display: flex; gap: 8px; }
+  .folio span {
+    width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--teal);
+    padding: 2px; display: block;
   }
-  .stamp {
-    position: absolute; top: 22px; font-family: var(--mono); font-weight: 700;
-    font-size: 20px; letter-spacing: .12em; padding: 6px 14px; border-radius: 8px;
-    border: 2.5px solid; opacity: 0; transform: rotate(-12deg);
+  .folio canvas { width: 100%; height: 100%; border-radius: 50%; display: block; }
+  .demo-nav { display: flex; justify-content: center; gap: 10px; }
+  .demo-nav button {
+    border: 1px solid var(--line); background: #fff; border-radius: 999px;
+    width: 42px; height: 42px; font-size: 17px; cursor: pointer; color: var(--teal);
   }
-  .stamp.like { left: 18px; color: var(--ok); border-color: var(--ok); }
-  .stamp.pass { right: 18px; color: var(--accent); border-color: var(--accent); transform: rotate(12deg); }
-  .card-btns {
-    display: flex; justify-content: center; gap: 18px; margin-top: 18px;
-  }
-  .card-btns button {
-    width: 58px; height: 58px; border-radius: 50%; border: 1px solid var(--line);
-    background: var(--surface); font-size: 22px; cursor: pointer; color: var(--text);
-  }
-  .card-btns button:hover { background: var(--raised); }
-  .card-btns .like { color: var(--ok); }
-  .card-btns .pass { color: var(--accent); }
-  .deck-hint {
-    text-align: center; font-family: var(--mono); font-size: 11px;
-    color: var(--muted); margin-top: 14px; letter-spacing: .08em;
-  }
+  .demo-cap { text-align: center; font-size: 11px; color: var(--muted); letter-spacing: .06em; }
 
   /* ---------- sections ---------- */
-  section { padding: 72px 0; border-top: 1px solid var(--line); }
+  section { padding: 68px 0; }
+  section + section { border-top: 1px solid rgba(45,110,128,.15); }
   .kicker {
-    font-family: var(--mono); font-size: 12px; letter-spacing: .18em;
-    text-transform: uppercase; color: var(--muted); margin-bottom: 14px;
+    font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--teal); margin-bottom: 12px;
   }
   h2 {
-    font-size: clamp(26px, 3.4vw, 36px); font-weight: 800;
-    letter-spacing: -.015em; line-height: 1.15; text-wrap: balance;
-    margin-bottom: 40px; max-width: 24ch;
+    font-size: clamp(26px, 3.4vw, 34px); font-weight: 800; letter-spacing: -.015em;
+    line-height: 1.15; text-wrap: balance; margin-bottom: 36px; max-width: 26ch;
   }
-  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
-  .step {
-    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
-    padding: 26px 24px;
+  .cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  .fcard {
+    background: #fff; border-radius: 18px; padding: 24px 22px;
+    box-shadow: 0 6px 20px rgba(29,60,70,.1);
   }
-  .step .n {
-    font-family: var(--mono); color: var(--accent); font-size: 13px;
-    letter-spacing: .1em; margin-bottom: 14px;
-  }
-  .step h3 { font-size: 19px; font-weight: 700; margin-bottom: 8px; }
-  .step p { color: var(--muted); font-size: 15.5px; }
+  .fcard .n { font-size: 12px; font-weight: 800; color: var(--teal); letter-spacing: .1em; margin-bottom: 12px; }
+  .fcard h3 { font-size: 18px; font-weight: 800; margin-bottom: 8px; }
+  .fcard p { color: var(--muted); font-size: 15px; }
+  .fcard p strong { color: var(--ink); }
 
-  .chips { display: flex; flex-wrap: wrap; gap: 10px; max-width: 760px; }
-  .chip {
-    font-family: var(--mono); font-size: 13px; letter-spacing: .04em;
-    border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px;
-    color: var(--text); background: var(--surface);
+  .feat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  .feat {
+    background: #fff; border-radius: 16px; padding: 20px 22px; display: flex; gap: 14px;
+    box-shadow: 0 4px 14px rgba(29,60,70,.08); align-items: flex-start;
   }
-  .chip.hot { border-color: var(--accent-dim); color: var(--accent); }
-  .chips-note { color: var(--muted); margin-top: 26px; max-width: 56ch; font-size: 15.5px; }
-
-  .road { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
-  .road .stop { border-left: 2px solid var(--line); padding-left: 18px; }
-  .road .stop.now { border-color: var(--accent); }
-  .road .when {
-    font-family: var(--mono); font-size: 12px; letter-spacing: .1em;
-    color: var(--muted); margin-bottom: 8px;
+  .feat .ic {
+    width: 42px; height: 42px; border-radius: 12px; background: var(--teal-soft);
+    display: flex; align-items: center; justify-content: center; font-size: 19px; flex: 0 0 auto;
   }
-  .road .stop.now .when { color: var(--accent); }
-  .road h3 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
-  .road p { color: var(--muted); font-size: 15px; }
+  .feat h3 { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+  .feat p { color: var(--muted); font-size: 14.5px; }
 
-  .cta-end { text-align: left; }
+  .badge-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  .badge-row .pill { font-size: 12px; padding: 6px 12px; }
+
+  .road { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .stop { background: #fff; border-radius: 16px; padding: 22px; box-shadow: 0 4px 14px rgba(29,60,70,.08); }
+  .stop.now { outline: 2px solid var(--teal); }
+  .stop .when { font-size: 11px; font-weight: 800; letter-spacing: .1em; color: var(--muted); margin-bottom: 8px; }
+  .stop.now .when { color: var(--teal); }
+  .stop h3 { font-size: 16.5px; font-weight: 800; margin-bottom: 6px; }
+  .stop p { color: var(--muted); font-size: 14.5px; }
+
   footer {
-    border-top: 1px solid var(--line); padding: 30px 0 46px;
-    display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap;
-    color: var(--muted); font-family: var(--mono); font-size: 12px; letter-spacing: .05em;
+    border-top: 1px solid rgba(45,110,128,.15); padding: 28px 0 44px;
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+    color: var(--muted); font-size: 13px;
   }
 
-  @media (max-width: 860px) {
-    .hero { grid-template-columns: 1fr; padding: 32px 0 64px; gap: 40px; }
-    .steps, .road { grid-template-columns: 1fr; }
-    section { padding: 56px 0; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .card { transition: none; }
-    html { scroll-behavior: auto; }
+  @media (max-width: 880px) {
+    .hero { grid-template-columns: 1fr; padding: 24px 0 60px; gap: 44px; }
+    .cards3, .road { grid-template-columns: 1fr; }
+    .feat-grid { grid-template-columns: 1fr; }
+    section { padding: 52px 0; }
   }
 </style>
 
 <div class="wrap">
   <header>
-    <div class="logo">KOL<span>LAB</span></div>
-    <div class="wip">ARBEJDSTITEL · BETA 2026</div>
+    <div class="logo">Link.Up<small>Start connecting</small></div>
+    <a class="try-btn" href="https://publicsoda-png.github.io/linkup/poc/">Prøv prototypen →</a>
   </header>
 
   <div class="hero">
     <div>
-      <div class="eyebrow">For musikere, producere &amp; kreative</div>
-      <h1>Din næste collab er <em>ét swipe</em> væk.</h1>
-      <p class="sub">Match med vokalister, producere, fotografer, designere og videofolk — på deres <strong>arbejde</strong>, ikke deres ansigt. Hør loopet, se billederne, swipe, lav noget sammen.</p>
+      <span class="eyebrow">LINKEDIN + TINDER = LINK.UP</span>
+      <h1>Find folk med <em>præcis</em> de kompetencer, du mangler.</h1>
+      <p class="sub">Én søgning på titel eller arbejdsområde — og du bladrer gennem relevante profiler med portfolio, erfaring og tilgængelighed. En guitarist, der mangler en trommeslager. En instruktør, der samler filmhold. <strong>Ræk ud, bliv accepteret, start samarbejdet.</strong></p>
       <form class="waitlist" id="waitlist" name="venteliste" method="POST" data-netlify="true">
         <input type="hidden" name="form-name" value="venteliste">
         <input type="email" name="email" placeholder="din@mail.dk" required aria-label="Din e-mail">
         <button type="submit">Skriv mig op</button>
       </form>
-      <div class="toast" id="toast">Du er på listen — vi skriver, når betaen åbner i København.</div>
-      <div class="form-note">Gratis beta · København først · ingen spam</div>
+      <div class="toast" id="toast">Du er på listen — vi skriver, når betaen åbner.</div>
+      <div class="form-note">Gratis at bruge · Kreative fag først · Ingen likes, ingen følgere</div>
     </div>
 
-    <div class="deck-zone">
-      <div class="deck" id="deck" aria-label="Demo: swipe på kreatives arbejde"></div>
-      <div class="card-btns">
-        <button class="pass" id="btnPass" aria-label="Pas">✕</button>
-        <button class="like" id="btnLike" aria-label="Match">♥</button>
+    <div>
+      <div class="phone-demo">
+        <div class="bar">
+          <span class="logo">Link.Up</span>
+          <span style="color:var(--teal)">⚙</span>
+        </div>
+        <div class="searchpill">⌕ Søg titel eller arbejdsområde…</div>
+        <div class="democard" id="democard"></div>
+        <div class="demo-nav">
+          <button onclick="prevP()" aria-label="Forrige profil">‹</button>
+          <button onclick="nextP()" aria-label="Næste profil">›</button>
+        </div>
+        <div class="demo-cap">SWIPE FOR AT BLADRE — IKKE FOR AT DØMME</div>
       </div>
-      <div class="deck-hint">TRÆK KORTET — ELLER BRUG PILETASTERNE</div>
     </div>
   </div>
 
   <section>
     <div class="kicker">Sådan virker det</div>
-    <h2>Værket først. Personen bagefter.</h2>
-    <div class="steps">
-      <div class="step">
-        <div class="n">01 / VIS</div>
-        <h3>Læg dit arbejde op</h3>
-        <p>3-5 værker: loops, tracks, fotos, design. Vælg hvad du <strong>tilbyder</strong>, og hvad du <strong>søger</strong> — fx "producer søger vokalist".</p>
+    <h2>Tre trin fra idé til samarbejde.</h2>
+    <div class="cards3">
+      <div class="fcard">
+        <div class="n">01 · OPRET</div>
+        <h3>Én konto, flere professioner</h3>
+        <p>Er du både producer og grafiker? Opret <strong>en profil pr. profession</strong> — hver med egen portfolio, erfaring og uddannelse. Du viser kun den side, der er relevant.</p>
       </div>
-      <div class="step">
-        <div class="n">02 / SWIPE</div>
-        <h3>Swipe på arbejdet</h3>
-        <p>Dit dæk viser kun folk, der matcher det, du søger. Lyd afspilles direkte i kortet — du bedømmer værket, ikke selfien.</p>
+      <div class="fcard">
+        <div class="n">02 · SØG &amp; BLADR</div>
+        <h3>Søg direkte — swipe for at bladre</h3>
+        <p>Ingen skjult algoritme, der vælger for dig. <strong>Du søger selv</strong> på titel eller arbejdsområde og bladrer gennem kandidaterne. Filtrér på erfaring og tilgængelighed.</p>
       </div>
-      <div class="step">
-        <div class="n">03 / LAV</div>
-        <h3>Match og skab</h3>
-        <p>Gensidigt like åbner chatten. Del stems, book studiet, aftal shootet. Resten er op til jer.</p>
+      <div class="fcard">
+        <div class="n">03 · RÆK UD</div>
+        <h3>Pitch, accept, chat</h3>
+        <p>Send en kort besked om, hvorfor du vil i kontakt. <strong>Accepterer modtageren, åbner chatten.</strong> Ingen spam, ingen kolde connections, der ikke svarer.</p>
       </div>
     </div>
   </section>
 
   <section>
-    <div class="kicker">Hvem det er for</div>
-    <h2>Hele scenen, ét dæk.</h2>
-    <div class="chips">
-      <span class="chip hot">producer</span>
-      <span class="chip hot">vokalist</span>
-      <span class="chip">rapper</span>
-      <span class="chip">sangskriver</span>
-      <span class="chip">mix &amp; master</span>
-      <span class="chip hot">fotograf</span>
-      <span class="chip">videograf</span>
-      <span class="chip">grafisk designer</span>
-      <span class="chip">artwork &amp; covers</span>
-      <span class="chip">stylist</span>
-      <span class="chip">tatovør</span>
-      <span class="chip">danser</span>
-      <span class="chip">manager</span>
-      <span class="chip">brand / label</span>
+    <div class="kicker">Det, der gør forskellen</div>
+    <h2>Bygget til netværk — ikke til egenprofilering.</h2>
+    <div class="feat-grid">
+      <div class="feat">
+        <div class="ic">🎨</div>
+        <div>
+          <h3>Portfolio i lommeformat</h3>
+          <p>Klikbare cirkler med billede, video og lyd — som stories. Dit arbejde taler, før din titel gør.</p>
+        </div>
+      </div>
+      <div class="feat">
+        <div class="ic">📅</div>
+        <div>
+          <h3>Tilgængeligheds-badge</h3>
+          <p>Alle profiler viser, hvor klar de er — så du ved, hvad du kan forvente, før du rækker ud.</p>
+          <div class="badge-row">
+            <span class="pill b-open">Åben</span>
+            <span class="pill b-special">Åben for særlige muligheder</span>
+            <span class="pill">Meget åben</span>
+            <span class="pill b-active">Aktivt søgende</span>
+          </div>
+        </div>
+      </div>
+      <div class="feat">
+        <div class="ic">🤫</div>
+        <div>
+          <h3>Ingen likes. Ingen følgere.</h3>
+          <p>Din synlighed afhænger af dine kompetencer — ikke af dit følgertal, eller hvor længe du har været med.</p>
+        </div>
+      </div>
+      <div class="feat">
+        <div class="ic">👤</div>
+        <div>
+          <h3>Klientprofil</h3>
+          <p>Skal du bare have løst en opgave? Opret dig som klient: du kan række ud til alle — uden selv at kunne findes.</p>
+        </div>
+      </div>
     </div>
-    <p class="chips-note">Betaen starter med musik-scenen i København — og udvider derfra, efterhånden som dækket bliver tæt nok til, at hvert swipe føles som et fund.</p>
   </section>
 
   <section>
     <div class="kicker">Planen</div>
-    <h2>Fra venteliste til App Store.</h2>
+    <h2>Kreative fag først. Så resten.</h2>
     <div class="road">
       <div class="stop now">
-        <div class="when">NU — EFTERÅR 2026</div>
-        <h3>Venteliste &amp; håndholdte matches</h3>
-        <p>Vi matcher de første 30 kreative manuelt og bygger appen på det, vi lærer.</p>
+        <div class="when">NU</div>
+        <h3>Prototype + venteliste</h3>
+        <p>Konceptet er designet, prototypen er klikbar, og ventelisten er åben. Musikere, designere, grafikere og filmfolk først.</p>
       </div>
       <div class="stop">
-        <div class="when">VINTER 2026</div>
-        <h3>Lukket beta (TestFlight)</h3>
-        <p>Swipe, match og chat — kun København, kun inviterede fra ventelisten.</p>
+        <div class="when">NÆSTE</div>
+        <h3>Lukket beta</h3>
+        <p>De første inviterede fra ventelisten tester appen i én by, så dækket er tæt nok til, at hver søgning giver ægte kandidater.</p>
       </div>
       <div class="stop">
-        <div class="when">2027</div>
-        <h3>App Store</h3>
-        <p>Offentlig launch, flere byer, flere discipliner.</p>
+        <div class="when">DEREFTER</div>
+        <h3>App Store — og bredere ud</h3>
+        <p>Offentlig launch. Flere fagområder — programmører, håndværkere — og på sigt virksomheder, der rekrutterer gennem appen.</p>
       </div>
     </div>
   </section>
 
-  <section class="cta-end">
-    <h2>Vær med fra første swipe.</h2>
+  <section>
+    <h2>Vær med fra starten.</h2>
     <form class="waitlist" id="waitlist2" name="venteliste" method="POST" data-netlify="true">
       <input type="hidden" name="form-name" value="venteliste">
       <input type="email" name="email" placeholder="din@mail.dk" required aria-label="Din e-mail">
       <button type="submit">Skriv mig op</button>
     </form>
     <div class="toast" id="toast2">Du er på listen — vi skriver, når betaen åbner.</div>
+    <p class="form-note" style="margin-top:16px">Eller <a href="https://publicsoda-png.github.io/linkup/poc/" style="color:var(--teal);font-weight:700">prøv den klikbare prototype</a> med det samme.</p>
   </section>
 
   <footer>
-    <div>KOLLAB © 2026 · København</div>
-    <div>KONTAKT: TEAM@BYADMINISTRATION.DK</div>
+    <div><strong style="color:var(--teal)">Link.Up</strong> · Start connecting · © 2026</div>
+    <div>team@byadministration.dk</div>
   </footer>
 </div>
 
 <script>
-  // ---------- demo profiles ----------
-  const PROFILES = [
-    { who: "VERA N.", meta: "VOKALIST · KBH NV · 92 BPM DEMOS", seeks: "SØGER: PRODUCER (R&B / DRAIN)", type: "wave", seed: 7 },
-    { who: "MOSS", meta: "PRODUCER · AMAGER · PLUGGNB / CLOUD", seeks: "SØGER: VOKALIST + COVER-DESIGNER", type: "wave", seed: 23 },
-    { who: "LINE K.", meta: "FOTOGRAF · VESTERBRO · 35MM / STUDIE", seeks: "SØGER: ARTISTS TIL PRESSEFOTOS", type: "grid", seed: 4 },
-    { who: "AXO", meta: "GRAFISK DESIGN · ONLINE · TYPE / COVERS", seeks: "SØGER: LABELS + SINGLES-ARTWORK", type: "type", seed: 11 },
-    { who: "JUNO BEATS", meta: "PRODUCER · NØRREBRO · 140-160 BPM", seeks: "SØGER: RAPPER (DK / ENG)", type: "wave", seed: 41 },
+  /* ---------- demo-profiler i heroen ---------- */
+  const DEMO = [
+    { name:"Marcus, 31", role:"Runner / Filmassistent", pills:[["💼","5 års erfaring"],["🎓","Saxo Academy, 2019"]], badge:["","Meget åben"], seed: 5, folio:["photo","photo","audio"] },
+    { name:"Vera, 26", role:"Vokalist / Sangskriver", pills:[["💼","4 års erfaring"],["🎓","MGK, 2022"]], badge:["b-active","Aktivt søgende"], seed: 7, folio:["audio","photo","audio"] },
+    { name:"Line, 31", role:"Fotograf", pills:[["💼","8 års erfaring"],["🎓","Fatamorgana, 2018"]], badge:["b-open","Åben"], seed: 4, folio:["photo","photo","photo"] },
+    { name:"Anton, 28", role:"Grafisk designer", pills:[["💼","5 års erfaring"],["🎓","DMJX, 2021"]], badge:["b-special","Åben for særlige muligheder"], seed: 11, folio:["type","photo"] },
   ];
+  const COLORS = ["#4aa3b8","#c95f7b","#d99a2b","#3ba776"];
+  let pi = 0;
 
-  // seeded pseudo-random so hver art er stabil
-  function rng(seed) {
-    let s = seed;
-    return () => (s = (s * 16807 + 13) % 2147483647) / 2147483647;
-  }
+  function rng(seed){ let s=seed; return ()=> (s=(s*16807+13)%2147483647)/2147483647; }
 
-  function drawArt(canvas, type, seed) {
-    const dpr = window.devicePixelRatio || 1;
-    const w = canvas.clientWidth, h = canvas.clientHeight;
-    canvas.width = w * dpr; canvas.height = h * dpr;
-    const ctx = canvas.getContext("2d");
-    ctx.scale(dpr, dpr);
-    const r = rng(seed);
-    ctx.fillStyle = "#1d1a24"; ctx.fillRect(0, 0, w, h);
-    if (type === "wave") {
-      const bars = 56, bw = w / bars;
-      for (let i = 0; i < bars; i++) {
-        const env = Math.sin((i / bars) * Math.PI);
-        const bh = (r() * 0.75 + 0.25) * env * (h * 0.8);
-        ctx.fillStyle = i % 7 === 3 ? "#ff5d73" : "#4d4560";
-        ctx.fillRect(i * bw + 1, (h - bh) / 2, bw - 2, bh);
-      }
-    } else if (type === "grid") {
-      const n = 3, gap = 6, cw = (w - gap * (n + 1)) / n, ch = (h - gap * (n + 1)) / n;
-      for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
-        const g = 40 + r() * 60;
-        ctx.fillStyle = (x === 1 && y === 1) ? "#ff5d73" : `rgb(${g},${g - 6},${g + 10})`;
-        ctx.fillRect(gap + x * (cw + gap), gap + y * (ch + gap), cw, ch);
-      }
+  function drawArt(cv,type,seed){
+    const dpr=window.devicePixelRatio||1;
+    const w=cv.clientWidth||38, h=cv.clientHeight||38;
+    cv.width=w*dpr; cv.height=h*dpr;
+    const x=cv.getContext("2d"); x.scale(dpr,dpr);
+    const r=rng(seed);
+    if(type==="audio"){
+      x.fillStyle="#12343f"; x.fillRect(0,0,w,h);
+      const n=12,bw=w/n;
+      for(let i=0;i<n;i++){ const bh=(r()*.7+.3)*Math.sin(i/n*Math.PI)*h*.7;
+        x.fillStyle=i%5===2?"#6fd3e8":"#2d6e80"; x.fillRect(i*bw+1,(h-bh)/2,bw-2,bh); }
+    } else if(type==="type"){
+      x.fillStyle="#1d2b30"; x.fillRect(0,0,w,h);
+      x.fillStyle="#dff2f6"; x.textAlign="center"; x.textBaseline="middle";
+      x.font="800 17px -apple-system, Helvetica, sans-serif"; x.fillText("Aa",w/2,h/2);
     } else {
-      ctx.fillStyle = "#f0edf5";
-      ctx.font = "800 64px -apple-system, Helvetica, sans-serif";
-      ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      ctx.fillText("Aa", w / 2, h / 2 - 8);
-      ctx.fillStyle = "#ff5d73";
-      ctx.font = "12px Menlo, monospace";
-      ctx.fillText("GROTESK — 12 SNIT", w / 2, h - 24);
+      const hue=170+r()*140, g=x.createLinearGradient(0,0,w,h);
+      g.addColorStop(0,`hsl(${hue},40%,64%)`); g.addColorStop(1,`hsl(${hue+40},44%,36%)`);
+      x.fillStyle=g; x.fillRect(0,0,w,h);
     }
   }
 
-  // ---------- deck ----------
-  const deck = document.getElementById("deck");
-  let order = [...PROFILES.keys()];
-
-  function buildCard(p) {
-    const el = document.createElement("div");
-    el.className = "card";
-    el.innerHTML = `
-      <div class="stamp like">MATCH</div>
-      <div class="stamp pass">PAS</div>
-      <div class="art"><canvas></canvas></div>
-      <div class="who">${p.who}</div>
-      <div class="meta">${p.meta}</div>
-      <div class="seeks">${p.seeks}</div>`;
-    return el;
+  function drawPortrait(cv,p,i){
+    const dpr=window.devicePixelRatio||1;
+    const w=cv.clientWidth, h=cv.clientHeight;
+    cv.width=w*dpr; cv.height=h*dpr;
+    const x=cv.getContext("2d"); x.scale(dpr,dpr);
+    const c=COLORS[i%COLORS.length];
+    const g=x.createLinearGradient(0,0,0,h);
+    g.addColorStop(0,c); g.addColorStop(1,"#1d2b30");
+    x.fillStyle=g; x.fillRect(0,0,w,h);
+    x.fillStyle="rgba(255,255,255,.18)";
+    x.beginPath(); x.arc(w/2,h*.48,34,0,7); x.fill();
+    x.fillStyle="#fff"; x.textAlign="center"; x.textBaseline="middle";
+    x.font="800 24px -apple-system, Helvetica, sans-serif";
+    x.fillText(p.name.slice(0,2).toUpperCase(),w/2,h*.48);
   }
 
-  function layout() {
-    [...deck.children].forEach((c, i) => {
-      if (!c.classList.contains("dragging")) {
-        c.style.transform = `translateY(${i * -10}px) rotate(${i % 2 ? 2.5 : -2}deg) scale(${1 - i * 0.04})`;
-        c.style.zIndex = 100 - i;
-        c.style.opacity = i > 2 ? 0 : 1;
-      }
+  function renderP(){
+    const p=DEMO[pi], el=document.getElementById("democard");
+    el.innerHTML=`
+      <div class="photo"><canvas></canvas></div>
+      <div class="info">
+        <div class="who">${p.name}</div>
+        <div class="role">${p.role}</div>
+        <div class="pills">
+          ${p.pills.map(([ic,t])=>`<span class="pill">${ic} ${t}</span>`).join("")}
+          <span class="pill ${p.badge[0]}">📅 ${p.badge[1]}</span>
+        </div>
+        <div class="folio">${p.folio.map(()=>`<span><canvas></canvas></span>`).join("")}</div>
+      </div>`;
+    requestAnimationFrame(()=>{
+      drawPortrait(el.querySelector(".photo canvas"),p,pi);
+      el.querySelectorAll(".folio canvas").forEach((cv,j)=>drawArt(cv,p.folio[j],p.seed+j*13));
     });
   }
-
-  function render() {
-    deck.innerHTML = "";
-    order.slice(0, 4).forEach((idx) => deck.appendChild(buildCard(PROFILES[idx])));
-    layout();
-    [...deck.children].forEach((c, i) => {
-      const p = PROFILES[order[i]];
-      drawArt(c.querySelector("canvas"), p.type, p.seed);
-    });
-    attachDrag(deck.children[0]);
+  function nextP(){ pi=(pi+1)%DEMO.length; renderP(); }
+  function prevP(){ pi=(pi-1+DEMO.length)%DEMO.length; renderP(); }
+  renderP();
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    setInterval(()=>{ if(!document.hidden) nextP(); }, 4200);
   }
 
-  function swipe(dir) {
-    const top = deck.children[0];
-    if (!top) return;
-    top.style.transform = `translateX(${dir * 520}px) rotate(${dir * 22}deg)`;
-    top.style.opacity = 0;
-    setTimeout(() => { order.push(order.shift()); render(); }, 300);
-  }
-
-  function attachDrag(card) {
-    if (!card) return;
-    let sx = 0, sy = 0, dx = 0, dragging = false;
-    const likeStamp = card.querySelector(".stamp.like");
-    const passStamp = card.querySelector(".stamp.pass");
-    card.addEventListener("pointerdown", (e) => {
-      dragging = true; sx = e.clientX; sy = e.clientY;
-      card.classList.add("dragging");
-      card.setPointerCapture(e.pointerId);
-    });
-    card.addEventListener("pointermove", (e) => {
-      if (!dragging) return;
-      dx = e.clientX - sx;
-      const dy = e.clientY - sy;
-      card.style.transform = `translate(${dx}px, ${dy * 0.4}px) rotate(${dx * 0.06}deg)`;
-      likeStamp.style.opacity = Math.max(0, dx / 90);
-      passStamp.style.opacity = Math.max(0, -dx / 90);
-    });
-    const release = () => {
-      if (!dragging) return;
-      dragging = false;
-      card.classList.remove("dragging");
-      if (Math.abs(dx) > 110) { swipe(Math.sign(dx)); }
-      else {
-        likeStamp.style.opacity = 0; passStamp.style.opacity = 0;
-        layout();
-      }
-      dx = 0;
-    };
-    card.addEventListener("pointerup", release);
-    card.addEventListener("pointercancel", release);
-  }
-
-  document.getElementById("btnLike").addEventListener("click", () => swipe(1));
-  document.getElementById("btnPass").addEventListener("click", () => swipe(-1));
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowRight") swipe(1);
-    if (e.key === "ArrowLeft") swipe(-1);
-  });
-  window.addEventListener("resize", () => render());
-  render();
-
-  // ---------- waitlist (Netlify Forms via AJAX, så siden ikke reloader) ----------
-  [["waitlist", "toast"], ["waitlist2", "toast2"]].forEach(([fid, tid]) => {
-    const form = document.getElementById(fid);
-    form.addEventListener("submit", async (e) => {
+  /* ---------- venteliste (Netlify Forms via AJAX) ---------- */
+  [["waitlist","toast"],["waitlist2","toast2"]].forEach(([fid,tid])=>{
+    const form=document.getElementById(fid);
+    form.addEventListener("submit", async (e)=>{
       e.preventDefault();
-      const body = new URLSearchParams(new FormData(form)).toString();
+      const body=new URLSearchParams(new FormData(form)).toString();
       try {
-        await fetch("/", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body,
-        });
+        await fetch("/", { method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded"}, body });
         document.getElementById(tid).classList.add("show");
-        form.querySelector("input[type=email]").value = "";
-      } catch {
-        form.submit(); // fallback: almindelig POST med sideskift
-      }
+        form.querySelector("input[type=email]").value="";
+      } catch { form.submit(); }
     });
   });
 </script>
