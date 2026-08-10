@@ -1,0 +1,470 @@
+<title>KOLLAB — din næste collab er ét swipe væk</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: #141218;
+    --surface: #1d1a24;
+    --raised: #262230;
+    --line: #332e3f;
+    --text: #f0edf5;
+    --muted: #9a93a8;
+    --accent: #ff5d73;
+    --accent-dim: #b23e50;
+    --ok: #7de2a8;
+    --mono: "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---------- header ---------- */
+  header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 22px 0;
+  }
+  .logo {
+    font-weight: 800; letter-spacing: .14em; font-size: 15px;
+  }
+  .logo span { color: var(--accent); }
+  .wip {
+    font-family: var(--mono); font-size: 11px; color: var(--muted);
+    border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px;
+    letter-spacing: .08em;
+  }
+
+  /* ---------- hero ---------- */
+  .hero {
+    display: grid; grid-template-columns: 1.1fr .9fr; gap: 48px;
+    align-items: center; padding: 56px 0 88px;
+  }
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 18px;
+  }
+  h1 {
+    font-size: clamp(38px, 5.2vw, 58px); font-weight: 800;
+    line-height: 1.05; letter-spacing: -.02em; text-wrap: balance;
+    margin-bottom: 22px;
+  }
+  h1 em {
+    font-style: normal;
+    box-shadow: inset 0 -.14em 0 var(--accent);
+  }
+  .sub {
+    color: var(--muted); max-width: 46ch; margin-bottom: 34px; font-size: 18px;
+  }
+  form.waitlist { display: flex; gap: 10px; max-width: 460px; }
+  .waitlist input {
+    flex: 1; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 10px; padding: 14px 16px; color: var(--text); font-size: 16px;
+    font-family: var(--sans);
+  }
+  .waitlist input::placeholder { color: var(--muted); }
+  .waitlist input:focus, .waitlist button:focus-visible, .card-btns button:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+  .waitlist button {
+    background: var(--accent); color: #1b0b10; border: 0; border-radius: 10px;
+    padding: 14px 22px; font-size: 16px; font-weight: 700; cursor: pointer;
+    font-family: var(--sans); white-space: nowrap;
+  }
+  .waitlist button:hover { background: #ff778a; }
+  .form-note {
+    font-family: var(--mono); font-size: 12px; color: var(--muted); margin-top: 12px;
+  }
+  .toast {
+    margin-top: 14px; font-size: 15px; color: var(--ok); display: none;
+  }
+  .toast.show { display: block; }
+
+  /* ---------- card deck ---------- */
+  .deck-zone { position: relative; }
+  .deck {
+    position: relative; height: 430px; touch-action: none;
+  }
+  .card {
+    position: absolute; inset: 0; margin: auto;
+    width: min(300px, 82%); height: 400px;
+    background: var(--raised); border: 1px solid var(--line); border-radius: 18px;
+    padding: 18px; display: flex; flex-direction: column; gap: 12px;
+    user-select: none; -webkit-user-select: none; cursor: grab;
+    transition: transform .35s ease, opacity .35s ease;
+    will-change: transform;
+  }
+  .card.dragging { transition: none; cursor: grabbing; }
+  .card .art {
+    flex: 1; border-radius: 10px; background: var(--surface);
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
+  }
+  .card canvas { width: 100%; height: 100%; display: block; }
+  .card .who { font-weight: 800; font-size: 20px; letter-spacing: -.01em; }
+  .card .meta {
+    font-family: var(--mono); font-size: 12px; color: var(--muted);
+    letter-spacing: .04em;
+  }
+  .card .seeks {
+    font-family: var(--mono); font-size: 12px; color: var(--accent);
+    letter-spacing: .06em;
+  }
+  .stamp {
+    position: absolute; top: 22px; font-family: var(--mono); font-weight: 700;
+    font-size: 20px; letter-spacing: .12em; padding: 6px 14px; border-radius: 8px;
+    border: 2.5px solid; opacity: 0; transform: rotate(-12deg);
+  }
+  .stamp.like { left: 18px; color: var(--ok); border-color: var(--ok); }
+  .stamp.pass { right: 18px; color: var(--accent); border-color: var(--accent); transform: rotate(12deg); }
+  .card-btns {
+    display: flex; justify-content: center; gap: 18px; margin-top: 18px;
+  }
+  .card-btns button {
+    width: 58px; height: 58px; border-radius: 50%; border: 1px solid var(--line);
+    background: var(--surface); font-size: 22px; cursor: pointer; color: var(--text);
+  }
+  .card-btns button:hover { background: var(--raised); }
+  .card-btns .like { color: var(--ok); }
+  .card-btns .pass { color: var(--accent); }
+  .deck-hint {
+    text-align: center; font-family: var(--mono); font-size: 11px;
+    color: var(--muted); margin-top: 14px; letter-spacing: .08em;
+  }
+
+  /* ---------- sections ---------- */
+  section { padding: 72px 0; border-top: 1px solid var(--line); }
+  .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 14px;
+  }
+  h2 {
+    font-size: clamp(26px, 3.4vw, 36px); font-weight: 800;
+    letter-spacing: -.015em; line-height: 1.15; text-wrap: balance;
+    margin-bottom: 40px; max-width: 24ch;
+  }
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+  .step {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 26px 24px;
+  }
+  .step .n {
+    font-family: var(--mono); color: var(--accent); font-size: 13px;
+    letter-spacing: .1em; margin-bottom: 14px;
+  }
+  .step h3 { font-size: 19px; font-weight: 700; margin-bottom: 8px; }
+  .step p { color: var(--muted); font-size: 15.5px; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; max-width: 760px; }
+  .chip {
+    font-family: var(--mono); font-size: 13px; letter-spacing: .04em;
+    border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px;
+    color: var(--text); background: var(--surface);
+  }
+  .chip.hot { border-color: var(--accent-dim); color: var(--accent); }
+  .chips-note { color: var(--muted); margin-top: 26px; max-width: 56ch; font-size: 15.5px; }
+
+  .road { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+  .road .stop { border-left: 2px solid var(--line); padding-left: 18px; }
+  .road .stop.now { border-color: var(--accent); }
+  .road .when {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .1em;
+    color: var(--muted); margin-bottom: 8px;
+  }
+  .road .stop.now .when { color: var(--accent); }
+  .road h3 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+  .road p { color: var(--muted); font-size: 15px; }
+
+  .cta-end { text-align: left; }
+  footer {
+    border-top: 1px solid var(--line); padding: 30px 0 46px;
+    display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+    color: var(--muted); font-family: var(--mono); font-size: 12px; letter-spacing: .05em;
+  }
+
+  @media (max-width: 860px) {
+    .hero { grid-template-columns: 1fr; padding: 32px 0 64px; gap: 40px; }
+    .steps, .road { grid-template-columns: 1fr; }
+    section { padding: 56px 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .card { transition: none; }
+    html { scroll-behavior: auto; }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="logo">KOL<span>LAB</span></div>
+    <div class="wip">ARBEJDSTITEL · BETA 2026</div>
+  </header>
+
+  <div class="hero">
+    <div>
+      <div class="eyebrow">For musikere, producere &amp; kreative</div>
+      <h1>Din næste collab er <em>ét swipe</em> væk.</h1>
+      <p class="sub">Match med vokalister, producere, fotografer, designere og videofolk — på deres <strong>arbejde</strong>, ikke deres ansigt. Hør loopet, se billederne, swipe, lav noget sammen.</p>
+      <form class="waitlist" id="waitlist" name="venteliste" method="POST" data-netlify="true">
+        <input type="hidden" name="form-name" value="venteliste">
+        <input type="email" name="email" placeholder="din@mail.dk" required aria-label="Din e-mail">
+        <button type="submit">Skriv mig op</button>
+      </form>
+      <div class="toast" id="toast">Du er på listen — vi skriver, når betaen åbner i København.</div>
+      <div class="form-note">Gratis beta · København først · ingen spam</div>
+    </div>
+
+    <div class="deck-zone">
+      <div class="deck" id="deck" aria-label="Demo: swipe på kreatives arbejde"></div>
+      <div class="card-btns">
+        <button class="pass" id="btnPass" aria-label="Pas">✕</button>
+        <button class="like" id="btnLike" aria-label="Match">♥</button>
+      </div>
+      <div class="deck-hint">TRÆK KORTET — ELLER BRUG PILETASTERNE</div>
+    </div>
+  </div>
+
+  <section>
+    <div class="kicker">Sådan virker det</div>
+    <h2>Værket først. Personen bagefter.</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="n">01 / VIS</div>
+        <h3>Læg dit arbejde op</h3>
+        <p>3-5 værker: loops, tracks, fotos, design. Vælg hvad du <strong>tilbyder</strong>, og hvad du <strong>søger</strong> — fx "producer søger vokalist".</p>
+      </div>
+      <div class="step">
+        <div class="n">02 / SWIPE</div>
+        <h3>Swipe på arbejdet</h3>
+        <p>Dit dæk viser kun folk, der matcher det, du søger. Lyd afspilles direkte i kortet — du bedømmer værket, ikke selfien.</p>
+      </div>
+      <div class="step">
+        <div class="n">03 / LAV</div>
+        <h3>Match og skab</h3>
+        <p>Gensidigt like åbner chatten. Del stems, book studiet, aftal shootet. Resten er op til jer.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker">Hvem det er for</div>
+    <h2>Hele scenen, ét dæk.</h2>
+    <div class="chips">
+      <span class="chip hot">producer</span>
+      <span class="chip hot">vokalist</span>
+      <span class="chip">rapper</span>
+      <span class="chip">sangskriver</span>
+      <span class="chip">mix &amp; master</span>
+      <span class="chip hot">fotograf</span>
+      <span class="chip">videograf</span>
+      <span class="chip">grafisk designer</span>
+      <span class="chip">artwork &amp; covers</span>
+      <span class="chip">stylist</span>
+      <span class="chip">tatovør</span>
+      <span class="chip">danser</span>
+      <span class="chip">manager</span>
+      <span class="chip">brand / label</span>
+    </div>
+    <p class="chips-note">Betaen starter med musik-scenen i København — og udvider derfra, efterhånden som dækket bliver tæt nok til, at hvert swipe føles som et fund.</p>
+  </section>
+
+  <section>
+    <div class="kicker">Planen</div>
+    <h2>Fra venteliste til App Store.</h2>
+    <div class="road">
+      <div class="stop now">
+        <div class="when">NU — EFTERÅR 2026</div>
+        <h3>Venteliste &amp; håndholdte matches</h3>
+        <p>Vi matcher de første 30 kreative manuelt og bygger appen på det, vi lærer.</p>
+      </div>
+      <div class="stop">
+        <div class="when">VINTER 2026</div>
+        <h3>Lukket beta (TestFlight)</h3>
+        <p>Swipe, match og chat — kun København, kun inviterede fra ventelisten.</p>
+      </div>
+      <div class="stop">
+        <div class="when">2027</div>
+        <h3>App Store</h3>
+        <p>Offentlig launch, flere byer, flere discipliner.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-end">
+    <h2>Vær med fra første swipe.</h2>
+    <form class="waitlist" id="waitlist2" name="venteliste" method="POST" data-netlify="true">
+      <input type="hidden" name="form-name" value="venteliste">
+      <input type="email" name="email" placeholder="din@mail.dk" required aria-label="Din e-mail">
+      <button type="submit">Skriv mig op</button>
+    </form>
+    <div class="toast" id="toast2">Du er på listen — vi skriver, når betaen åbner.</div>
+  </section>
+
+  <footer>
+    <div>KOLLAB © 2026 · København</div>
+    <div>KONTAKT: TEAM@BYADMINISTRATION.DK</div>
+  </footer>
+</div>
+
+<script>
+  // ---------- demo profiles ----------
+  const PROFILES = [
+    { who: "VERA N.", meta: "VOKALIST · KBH NV · 92 BPM DEMOS", seeks: "SØGER: PRODUCER (R&B / DRAIN)", type: "wave", seed: 7 },
+    { who: "MOSS", meta: "PRODUCER · AMAGER · PLUGGNB / CLOUD", seeks: "SØGER: VOKALIST + COVER-DESIGNER", type: "wave", seed: 23 },
+    { who: "LINE K.", meta: "FOTOGRAF · VESTERBRO · 35MM / STUDIE", seeks: "SØGER: ARTISTS TIL PRESSEFOTOS", type: "grid", seed: 4 },
+    { who: "AXO", meta: "GRAFISK DESIGN · ONLINE · TYPE / COVERS", seeks: "SØGER: LABELS + SINGLES-ARTWORK", type: "type", seed: 11 },
+    { who: "JUNO BEATS", meta: "PRODUCER · NØRREBRO · 140-160 BPM", seeks: "SØGER: RAPPER (DK / ENG)", type: "wave", seed: 41 },
+  ];
+
+  // seeded pseudo-random so hver art er stabil
+  function rng(seed) {
+    let s = seed;
+    return () => (s = (s * 16807 + 13) % 2147483647) / 2147483647;
+  }
+
+  function drawArt(canvas, type, seed) {
+    const dpr = window.devicePixelRatio || 1;
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    canvas.width = w * dpr; canvas.height = h * dpr;
+    const ctx = canvas.getContext("2d");
+    ctx.scale(dpr, dpr);
+    const r = rng(seed);
+    ctx.fillStyle = "#1d1a24"; ctx.fillRect(0, 0, w, h);
+    if (type === "wave") {
+      const bars = 56, bw = w / bars;
+      for (let i = 0; i < bars; i++) {
+        const env = Math.sin((i / bars) * Math.PI);
+        const bh = (r() * 0.75 + 0.25) * env * (h * 0.8);
+        ctx.fillStyle = i % 7 === 3 ? "#ff5d73" : "#4d4560";
+        ctx.fillRect(i * bw + 1, (h - bh) / 2, bw - 2, bh);
+      }
+    } else if (type === "grid") {
+      const n = 3, gap = 6, cw = (w - gap * (n + 1)) / n, ch = (h - gap * (n + 1)) / n;
+      for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+        const g = 40 + r() * 60;
+        ctx.fillStyle = (x === 1 && y === 1) ? "#ff5d73" : `rgb(${g},${g - 6},${g + 10})`;
+        ctx.fillRect(gap + x * (cw + gap), gap + y * (ch + gap), cw, ch);
+      }
+    } else {
+      ctx.fillStyle = "#f0edf5";
+      ctx.font = "800 64px -apple-system, Helvetica, sans-serif";
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText("Aa", w / 2, h / 2 - 8);
+      ctx.fillStyle = "#ff5d73";
+      ctx.font = "12px Menlo, monospace";
+      ctx.fillText("GROTESK — 12 SNIT", w / 2, h - 24);
+    }
+  }
+
+  // ---------- deck ----------
+  const deck = document.getElementById("deck");
+  let order = [...PROFILES.keys()];
+
+  function buildCard(p) {
+    const el = document.createElement("div");
+    el.className = "card";
+    el.innerHTML = `
+      <div class="stamp like">MATCH</div>
+      <div class="stamp pass">PAS</div>
+      <div class="art"><canvas></canvas></div>
+      <div class="who">${p.who}</div>
+      <div class="meta">${p.meta}</div>
+      <div class="seeks">${p.seeks}</div>`;
+    return el;
+  }
+
+  function layout() {
+    [...deck.children].forEach((c, i) => {
+      if (!c.classList.contains("dragging")) {
+        c.style.transform = `translateY(${i * -10}px) rotate(${i % 2 ? 2.5 : -2}deg) scale(${1 - i * 0.04})`;
+        c.style.zIndex = 100 - i;
+        c.style.opacity = i > 2 ? 0 : 1;
+      }
+    });
+  }
+
+  function render() {
+    deck.innerHTML = "";
+    order.slice(0, 4).forEach((idx) => deck.appendChild(buildCard(PROFILES[idx])));
+    layout();
+    [...deck.children].forEach((c, i) => {
+      const p = PROFILES[order[i]];
+      drawArt(c.querySelector("canvas"), p.type, p.seed);
+    });
+    attachDrag(deck.children[0]);
+  }
+
+  function swipe(dir) {
+    const top = deck.children[0];
+    if (!top) return;
+    top.style.transform = `translateX(${dir * 520}px) rotate(${dir * 22}deg)`;
+    top.style.opacity = 0;
+    setTimeout(() => { order.push(order.shift()); render(); }, 300);
+  }
+
+  function attachDrag(card) {
+    if (!card) return;
+    let sx = 0, sy = 0, dx = 0, dragging = false;
+    const likeStamp = card.querySelector(".stamp.like");
+    const passStamp = card.querySelector(".stamp.pass");
+    card.addEventListener("pointerdown", (e) => {
+      dragging = true; sx = e.clientX; sy = e.clientY;
+      card.classList.add("dragging");
+      card.setPointerCapture(e.pointerId);
+    });
+    card.addEventListener("pointermove", (e) => {
+      if (!dragging) return;
+      dx = e.clientX - sx;
+      const dy = e.clientY - sy;
+      card.style.transform = `translate(${dx}px, ${dy * 0.4}px) rotate(${dx * 0.06}deg)`;
+      likeStamp.style.opacity = Math.max(0, dx / 90);
+      passStamp.style.opacity = Math.max(0, -dx / 90);
+    });
+    const release = () => {
+      if (!dragging) return;
+      dragging = false;
+      card.classList.remove("dragging");
+      if (Math.abs(dx) > 110) { swipe(Math.sign(dx)); }
+      else {
+        likeStamp.style.opacity = 0; passStamp.style.opacity = 0;
+        layout();
+      }
+      dx = 0;
+    };
+    card.addEventListener("pointerup", release);
+    card.addEventListener("pointercancel", release);
+  }
+
+  document.getElementById("btnLike").addEventListener("click", () => swipe(1));
+  document.getElementById("btnPass").addEventListener("click", () => swipe(-1));
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight") swipe(1);
+    if (e.key === "ArrowLeft") swipe(-1);
+  });
+  window.addEventListener("resize", () => render());
+  render();
+
+  // ---------- waitlist (Netlify Forms via AJAX, så siden ikke reloader) ----------
+  [["waitlist", "toast"], ["waitlist2", "toast2"]].forEach(([fid, tid]) => {
+    const form = document.getElementById(fid);
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const body = new URLSearchParams(new FormData(form)).toString();
+      try {
+        await fetch("/", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body,
+        });
+        document.getElementById(tid).classList.add("show");
+        form.querySelector("input[type=email]").value = "";
+      } catch {
+        form.submit(); // fallback: almindelig POST med sideskift
+      }
+    });
+  });
+</script>

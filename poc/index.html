@@ -1,0 +1,710 @@
+<title>LinkUp — proof of concept</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<style>
+  :root {
+    --grad-a: #dff2f6; --grad-b: #b8dfe8;
+    --teal: #2d6e80; --teal-dark: #235663; --teal-soft: #e4f1f4;
+    --ink: #1d2b30; --muted: #63757c; --card: #ffffff;
+    --line: #d3e4e9; --ok: #3ba776; --warn: #d99a2b; --hot: #c95f7b;
+    --r: 18px;
+    --sans: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0f1a1e; font-family: var(--sans); color: var(--ink);
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 18px;
+  }
+  .phone {
+    width: 100%; max-width: 400px; height: min(830px, calc(100vh - 36px));
+    background: linear-gradient(170deg, var(--grad-a), var(--grad-b));
+    border-radius: 34px; overflow: hidden; position: relative;
+    box-shadow: 0 30px 80px rgba(0,0,0,.55);
+    display: flex; flex-direction: column;
+  }
+  @media (max-width: 480px) {
+    body { padding: 0; }
+    .phone { max-width: none; height: 100dvh; border-radius: 0; }
+  }
+
+  /* ---------- logo ---------- */
+  .logo {
+    font-weight: 800; color: var(--teal); letter-spacing: -.02em;
+    font-size: 30px; position: relative; display: inline-block;
+    transform: rotate(-2deg);
+  }
+  .logo small {
+    display: block; font-weight: 400; font-size: 10px; letter-spacing: .08em;
+    color: var(--muted); font-style: italic; transform: rotate(1deg);
+  }
+
+  /* ---------- screens ---------- */
+  .screen { flex: 1; display: none; flex-direction: column; overflow: hidden; }
+  .screen.on { display: flex; }
+
+  /* login */
+  #scr-login { align-items: center; justify-content: center; gap: 40px; }
+  #scr-login .logo { font-size: 44px; }
+  .btn {
+    border: 0; border-radius: 999px; padding: 14px 20px; font-size: 16px;
+    font-weight: 600; cursor: pointer; font-family: var(--sans);
+  }
+  .btn:focus-visible, .chip:focus-visible, input:focus, textarea:focus { outline: 2px solid var(--teal); outline-offset: 2px; }
+  .btn.primary { background: var(--teal); color: #fff; width: 230px; }
+  .btn.primary:hover { background: var(--teal-dark); }
+  .btn.ghost { background: #fff; color: var(--ink); width: 230px; box-shadow: 0 2px 8px rgba(29,60,70,.12); }
+  .login-note { font-size: 12px; color: var(--muted); text-align: center; max-width: 240px; }
+
+  /* top bar */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 18px 8px;
+  }
+  .topbar .logo { font-size: 22px; }
+  .round-ic {
+    width: 38px; height: 38px; border-radius: 50%; background: #fff; border: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 17px;
+    cursor: pointer; box-shadow: 0 2px 6px rgba(29,60,70,.12); color: var(--teal);
+  }
+
+  /* search */
+  .search-wrap { padding: 4px 18px 10px; display: flex; flex-direction: column; gap: 10px; }
+  .search-box {
+    display: flex; align-items: center; gap: 8px; background: #fff;
+    border-radius: 999px; padding: 11px 16px; box-shadow: 0 2px 8px rgba(29,60,70,.10);
+  }
+  .search-box input {
+    border: 0; flex: 1; font-size: 15px; font-family: var(--sans); background: transparent;
+    color: var(--ink);
+  }
+  .search-box input::placeholder { color: var(--muted); }
+  .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip {
+    flex: 0 0 auto; border: 1px solid var(--line); background: #fff;
+    border-radius: 999px; padding: 7px 14px; font-size: 13px; cursor: pointer;
+    color: var(--ink); font-family: var(--sans);
+  }
+  .chip.on { background: var(--teal); color: #fff; border-color: var(--teal); }
+
+  /* deck */
+  .deck { flex: 1; position: relative; margin: 4px 18px 10px; touch-action: pan-y; }
+  .pcard {
+    position: absolute; inset: 0; background: var(--card); border-radius: var(--r);
+    box-shadow: 0 10px 30px rgba(29,60,70,.18); overflow: hidden;
+    display: flex; flex-direction: column;
+    transition: transform .3s ease, opacity .3s ease; will-change: transform;
+    cursor: grab;
+  }
+  .pcard.dragging { transition: none; cursor: grabbing; }
+  .pcard .photo { flex: 1.15; position: relative; min-height: 0; }
+  .pcard .photo canvas { width: 100%; height: 100%; display: block; }
+  .pcard .info { padding: 14px 16px 12px; display: flex; flex-direction: column; gap: 9px; }
+  .pcard .who { font-size: 21px; font-weight: 700; }
+  .pcard .role { color: var(--muted); font-size: 14px; margin-top: -6px; }
+  .pills { display: flex; flex-wrap: wrap; gap: 7px; }
+  .pill {
+    background: var(--teal); color: #fff; border-radius: 999px;
+    font-size: 12px; padding: 6px 12px; display: inline-flex; gap: 6px; align-items: center;
+  }
+  .pill.badge-open { background: var(--ok); }
+  .pill.badge-very { background: var(--teal); }
+  .pill.badge-special { background: var(--warn); }
+  .pill.badge-active { background: var(--hot); }
+  .folio { display: flex; gap: 10px; padding-top: 2px; }
+  .folio button {
+    width: 52px; height: 52px; border-radius: 50%; border: 2.5px solid var(--teal);
+    padding: 2px; background: #fff; cursor: pointer; overflow: hidden;
+  }
+  .folio canvas { width: 100%; height: 100%; border-radius: 50%; display: block; }
+  .card-actions { display: flex; gap: 10px; padding-top: 4px; }
+  .card-actions .btn { flex: 1; padding: 12px; font-size: 15px; }
+  .card-actions .reach { background: var(--teal); color: #fff; }
+  .card-actions .reach:hover { background: var(--teal-dark); }
+  .card-actions .more { background: var(--teal-soft); color: var(--teal); }
+  .deck-hint { text-align: center; font-size: 11px; color: var(--muted); padding-bottom: 6px; letter-spacing: .06em; }
+  .empty {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: var(--muted); font-size: 15px; text-align: center; padding: 30px;
+  }
+
+  /* nav */
+  nav {
+    background: #fff; display: flex; border-top: 1px solid var(--line);
+    padding: 8px 0 14px;
+  }
+  nav button {
+    flex: 1; background: none; border: 0; font-size: 21px; cursor: pointer;
+    color: var(--muted); position: relative; padding: 8px 0; font-family: var(--sans);
+  }
+  nav button.on { color: var(--teal); }
+  nav button .dot {
+    position: absolute; top: 4px; right: 28%; width: 9px; height: 9px;
+    border-radius: 50%; background: var(--hot); display: none;
+  }
+  nav button .dot.show { display: block; }
+  nav button span.lbl { display: block; font-size: 10px; margin-top: 2px; letter-spacing: .04em; }
+
+  /* overlays */
+  .overlay {
+    position: absolute; inset: 0; background: rgba(15,30,35,.45);
+    display: none; align-items: flex-end; z-index: 40;
+  }
+  .overlay.on { display: flex; }
+  .sheet {
+    background: #fff; width: 100%; border-radius: 22px 22px 0 0;
+    padding: 20px 20px 26px; max-height: 78%; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .sheet h3 { font-size: 18px; }
+  .sheet .to { color: var(--muted); font-size: 13px; margin-top: -8px; }
+  .sheet textarea {
+    border: 1px solid var(--line); border-radius: 12px; padding: 12px;
+    font-family: var(--sans); font-size: 15px; min-height: 110px; resize: none;
+    color: var(--ink);
+  }
+  .charcount { font-size: 11px; color: var(--muted); text-align: right; margin-top: -8px; }
+  .sheet .btn.primary { width: 100%; }
+  .sheet .close-row { display: flex; justify-content: flex-end; }
+  .link-btn { background: none; border: 0; color: var(--muted); font-size: 14px; cursor: pointer; font-family: var(--sans); }
+
+  /* story viewer */
+  #story.overlay { align-items: center; justify-content: center; background: rgba(10,20,24,.92); }
+  .story-box { width: 86%; max-width: 320px; display: flex; flex-direction: column; gap: 14px; align-items: center; }
+  .story-box .frame {
+    width: 100%; aspect-ratio: 3/4; border-radius: 16px; overflow: hidden; background: #12242a;
+    display: flex; align-items: center; justify-content: center; position: relative;
+  }
+  .story-box canvas { width: 100%; height: 100%; display: block; }
+  .story-box .cap { color: #cfe4ea; font-size: 13px; text-align: center; }
+  .story-box .playbtn {
+    position: absolute; width: 64px; height: 64px; border-radius: 50%;
+    border: 0; background: rgba(255,255,255,.92); color: var(--teal); font-size: 24px; cursor: pointer;
+  }
+
+  /* toast */
+  .toast {
+    position: absolute; left: 50%; transform: translateX(-50%); bottom: 96px;
+    background: var(--ink); color: #fff; border-radius: 999px; font-size: 13.5px;
+    padding: 10px 18px; opacity: 0; transition: opacity .3s; pointer-events: none;
+    z-index: 60; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+
+  /* chat */
+  .list { flex: 1; overflow-y: auto; padding: 6px 18px 12px; display: flex; flex-direction: column; gap: 10px; }
+  .thread {
+    background: #fff; border-radius: 14px; padding: 13px 15px; display: flex; gap: 12px;
+    align-items: center; cursor: pointer; box-shadow: 0 2px 8px rgba(29,60,70,.08);
+  }
+  .ava {
+    width: 44px; height: 44px; border-radius: 50%; color: #fff; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; font-size: 15px; flex: 0 0 auto;
+  }
+  .thread .t-main { flex: 1; min-width: 0; }
+  .thread .t-name { font-weight: 700; font-size: 15px; }
+  .thread .t-prev { color: var(--muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .thread .t-tag { font-size: 11px; color: var(--ok); font-weight: 600; }
+  .msgs { flex: 1; overflow-y: auto; padding: 10px 18px; display: flex; flex-direction: column; gap: 8px; }
+  .msg { max-width: 78%; padding: 10px 14px; border-radius: 16px; font-size: 14.5px; line-height: 1.45; }
+  .msg.them { background: #fff; align-self: flex-start; border-bottom-left-radius: 5px; }
+  .msg.me { background: var(--teal); color: #fff; align-self: flex-end; border-bottom-right-radius: 5px; }
+  .msg .sys { font-size: 11px; color: var(--muted); }
+  .sysline { align-self: center; font-size: 11.5px; color: var(--muted); background: rgba(255,255,255,.6); border-radius: 999px; padding: 4px 12px; }
+  .composer { display: flex; gap: 8px; padding: 10px 14px 14px; }
+  .composer input {
+    flex: 1; border: 0; border-radius: 999px; padding: 12px 16px; font-size: 15px;
+    font-family: var(--sans); background: #fff; box-shadow: 0 2px 6px rgba(29,60,70,.1);
+    color: var(--ink);
+  }
+  .composer button {
+    border: 0; border-radius: 50%; width: 44px; height: 44px; background: var(--teal);
+    color: #fff; font-size: 17px; cursor: pointer;
+  }
+  .chat-head { display: flex; align-items: center; gap: 12px; padding: 14px 18px 8px; }
+  .chat-head .t-name { font-weight: 700; font-size: 17px; }
+  .chat-head .t-sub { font-size: 12px; color: var(--muted); }
+
+  /* profile */
+  .prof { flex: 1; overflow-y: auto; padding: 6px 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+  .prof-card { background: #fff; border-radius: var(--r); padding: 18px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 4px 14px rgba(29,60,70,.1); }
+  .prof-top { display: flex; gap: 14px; align-items: center; }
+  .prof-top .ava { width: 62px; height: 62px; font-size: 21px; }
+  .prof-name { font-weight: 800; font-size: 19px; }
+  .prof-sub { color: var(--muted); font-size: 13px; }
+  .prof-switch { display: flex; gap: 8px; }
+  .prof-switch .chip.on { background: var(--teal); color: #fff; }
+  .prof-desc { font-size: 14px; color: var(--ink); line-height: 1.5; }
+  .prof-note { font-size: 12px; color: var(--muted); background: var(--teal-soft); border-radius: 12px; padding: 12px 14px; line-height: 1.5; }
+
+  .screen-title { font-weight: 800; font-size: 22px; padding: 10px 18px 6px; }
+</style>
+
+<div class="phone">
+
+  <!-- LOGIN -->
+  <div class="screen on" id="scr-login">
+    <div style="text-align:center">
+      <div class="logo">Link.Up<small>Start connecting</small></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;align-items:center">
+      <button class="btn ghost" onclick="enter()">Login</button>
+      <button class="btn primary" onclick="enter()">Opret Konto</button>
+      <div class="login-note">Proof of concept — alle profiler og beskeder er demo-data.</div>
+    </div>
+  </div>
+
+  <!-- SØG / DECK -->
+  <div class="screen" id="scr-find">
+    <div class="topbar">
+      <div class="logo">Link.Up</div>
+      <button class="round-ic" title="Filtre" aria-label="Filtre">⚙</button>
+    </div>
+    <div class="search-wrap">
+      <div class="search-box">
+        <span style="color:var(--muted)">⌕</span>
+        <input id="q" placeholder="Søg titel eller arbejdsområde…" aria-label="Søg">
+      </div>
+      <div class="chips" id="filterchips"></div>
+    </div>
+    <div class="deck" id="deck"></div>
+    <div class="deck-hint">SWIPE FOR AT BLADRE</div>
+  </div>
+
+  <!-- CHAT LIST -->
+  <div class="screen" id="scr-chat">
+    <div class="screen-title">Beskeder</div>
+    <div class="list" id="threads"></div>
+  </div>
+
+  <!-- CHAT THREAD -->
+  <div class="screen" id="scr-thread">
+    <div class="chat-head">
+      <button class="round-ic" onclick="go('chat')" aria-label="Tilbage">‹</button>
+      <div class="ava" id="th-ava"></div>
+      <div>
+        <div class="t-name" id="th-name"></div>
+        <div class="t-sub" id="th-sub"></div>
+      </div>
+    </div>
+    <div class="msgs" id="msgs"></div>
+    <div class="composer">
+      <input id="draft" placeholder="Skriv en besked…" aria-label="Skriv en besked">
+      <button onclick="sendMsg()" aria-label="Send">➤</button>
+    </div>
+  </div>
+
+  <!-- PROFIL -->
+  <div class="screen" id="scr-me">
+    <div class="screen-title">Min profil</div>
+    <div class="prof">
+      <div class="prof-card">
+        <div class="prof-top">
+          <div class="ava" style="background:linear-gradient(135deg,#2d6e80,#4aa3b8)">FJ</div>
+          <div>
+            <div class="prof-name">Frederik, 29</div>
+            <div class="prof-sub" id="me-sub">Producer · København</div>
+          </div>
+        </div>
+        <div class="prof-switch" id="me-switch"></div>
+        <div class="pills" id="me-pills"></div>
+        <div class="prof-desc" id="me-desc"></div>
+        <div class="folio" id="me-folio"></div>
+      </div>
+      <div class="prof-note"><strong>Flere profiler, én konto.</strong> Skift mellem dine professioner ovenfor — hver profil har sine egne bulletpoints og sin egen portfolio, og vises kun for dem, der søger netop dét.</div>
+    </div>
+  </div>
+
+  <!-- pitch sheet -->
+  <div class="overlay" id="pitch">
+    <div class="sheet">
+      <div class="close-row"><button class="link-btn" onclick="closePitch()">Luk</button></div>
+      <h3>Ræk ud</h3>
+      <div class="to" id="pitch-to"></div>
+      <textarea id="pitch-text" maxlength="600" placeholder="Skriv en kort pitch — hvorfor vil du gerne i kontakt? (max 600 tegn)"></textarea>
+      <div class="charcount"><span id="cc">0</span>/600</div>
+      <button class="btn primary" onclick="sendPitch()">Send anmodning</button>
+    </div>
+  </div>
+
+  <!-- story viewer -->
+  <div class="overlay" id="story">
+    <div class="story-box">
+      <div class="frame">
+        <canvas id="story-canvas"></canvas>
+        <button class="playbtn" id="story-play" style="display:none" aria-label="Afspil">▶</button>
+      </div>
+      <div class="cap" id="story-cap"></div>
+      <button class="link-btn" style="color:#cfe4ea" onclick="closeStory()">Luk</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- NAV -->
+  <nav id="nav" style="display:none">
+    <button data-tab="find" class="on">⌕<span class="lbl">Søg</span></button>
+    <button data-tab="chat">🗨<span class="dot" id="chatdot"></span><span class="lbl">Beskeder</span></button>
+    <button data-tab="me">☺<span class="lbl">Profil</span></button>
+  </nav>
+</div>
+
+<script>
+/* ================= data ================= */
+const AVA_COLORS = ["#4aa3b8","#c95f7b","#d99a2b","#3ba776","#7b6fc9","#5a8a6d"];
+const BADGE = {
+  open:    { label: "Åben",                     cls: "badge-open" },
+  very:    { label: "Meget åben",               cls: "badge-very" },
+  special: { label: "Åben for særlige muligheder", cls: "badge-special" },
+  active:  { label: "Aktivt søgende",           cls: "badge-active" },
+};
+const PEOPLE = [
+  { id:"vera", name:"Vera, 26", role:"Vokalist / Sangskriver", area:"musik vokal sang", exp:"4 års erfaring", edu:"MGK, 2022", badge:"active",
+    desc:"R&B- og drain-vokal. Skriver toplines på eget hjemmestudie og leder efter producere med et drømmende lydbillede.",
+    folio:[{type:"audio",cap:"Topline-demo · 92 BPM · Am",seed:7},{type:"photo",cap:"Live @ Vega, 2025",seed:12},{type:"audio",cap:"Hook-idé · 140 BPM",seed:31}] },
+  { id:"moss", name:"Malik, 24", role:"Producer", area:"musik producer beats pluggnb", exp:"6 års erfaring", edu:"Selvlært, 2019", badge:"very",
+    desc:"Pluggnb og cloud. Har release med tre danske artister og et bibliotek på 200+ beats. Søger vokalister og rappere.",
+    folio:[{type:"audio",cap:"Beat · 154 BPM · Em",seed:23},{type:"audio",cap:"Beat · 148 BPM · Dm",seed:44},{type:"photo",cap:"Studiet, Amager",seed:9}] },
+  { id:"line", name:"Line, 31", role:"Fotograf", area:"foto fotograf pressefoto analog", exp:"8 års erfaring", edu:"Fatamorgana, 2018", badge:"open",
+    desc:"35mm og studie. Skyder pressefotos, covers og kampagner — mest musik og mode. Base på Vesterbro.",
+    folio:[{type:"photo",cap:"Pressefoto-serie, 2026",seed:4},{type:"photo",cap:"Analog serie · Portra 400",seed:18},{type:"photo",cap:"Kampagne for dansk brand",seed:27}] },
+  { id:"axo", name:"Anton, 28", role:"Grafisk designer", area:"design grafik covers artwork type", exp:"5 års erfaring", edu:"DMJX, 2021", badge:"special",
+    desc:"Typografi og cover-artwork. Har lavet singles-covers for 40+ udgivelser. Tager kun projekter, hvor musikken siger mig noget.",
+    folio:[{type:"type",cap:"Cover-serie, 2025-26",seed:11},{type:"photo",cap:"Merch-design",seed:36}] },
+  { id:"juno", name:"Jonas, 27", role:"Videograf / Klipper", area:"video film musikvideo klip", exp:"7 års erfaring", edu:"Super16, 2020", badge:"very",
+    desc:"Musikvideoer og visualizers. Ét-mands-hold: idé, optagelse, klip og grade. Elsker hurtige, rå produktioner.",
+    folio:[{type:"photo",cap:"Stills fra musikvideo",seed:41},{type:"photo",cap:"Visualizer-frames",seed:15}] },
+  { id:"sara", name:"Sara, 30", role:"Mix & Master", area:"musik mix master lyd studie", exp:"9 års erfaring", edu:"Sonic College, 2017", badge:"open",
+    desc:"Mixer og masterer fra eget rum i NV. 300+ udgivelser gennem hænderne. Fast turnaround på 5 dage.",
+    folio:[{type:"audio",cap:"Før/efter-klip · mix",seed:52},{type:"photo",cap:"Rummet i NV",seed:6}] },
+];
+const ME = {
+  producer: { sub:"Producer · København", pills:[["💼","7 års erfaring"],["🎓","Selvlært, 2018"],[null,"very"]],
+    desc:"Drain, cloud og pluggnb. Bygger komplette lydbilleder og har eget bibliotek af arps og loops.",
+    folio:[{type:"audio",cap:"Arp · 132 BPM · C#m",seed:61},{type:"audio",cap:"Loop · 146 BPM",seed:71}] },
+  design: { sub:"Grafisk designer · København", pills:[["💼","5 års erfaring"],["🎓","Selvlært, 2020"],[null,"special"]],
+    desc:"Brand-design, emballage og covers. Driver til daglig tre brands og designer alt selv.",
+    folio:[{type:"type",cap:"Brand-arbejde, 2026",seed:81},{type:"photo",cap:"Emballage-design",seed:91}] },
+};
+
+/* ================= helpers ================= */
+const $ = (id) => document.getElementById(id);
+function rng(seed){ let s=seed; return ()=> (s=(s*16807+13)%2147483647)/2147483647; }
+function avaColor(id){ return AVA_COLORS[[...id].reduce((a,c)=>a+c.charCodeAt(0),0)%AVA_COLORS.length]; }
+function initials(name){ return name.split(",")[0].slice(0,2).toUpperCase(); }
+function toast(t){ const el=$("toast"); el.textContent=t; el.classList.add("show"); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove("show"),2600); }
+
+function drawArt(canvas,type,seed,big){
+  const dpr=window.devicePixelRatio||1;
+  const w=canvas.clientWidth||52, h=canvas.clientHeight||52;
+  canvas.width=w*dpr; canvas.height=h*dpr;
+  const x=canvas.getContext("2d"); x.scale(dpr,dpr);
+  const r=rng(seed);
+  if(type==="audio"){
+    x.fillStyle="#12343f"; x.fillRect(0,0,w,h);
+    const bars=big?48:14, bw=w/bars;
+    for(let i=0;i<bars;i++){
+      const env=Math.sin(i/bars*Math.PI);
+      const bh=(r()*.7+.3)*env*h*.72;
+      x.fillStyle=i%6===2?"#6fd3e8":"#2d6e80";
+      x.fillRect(i*bw+1,(h-bh)/2,bw-2,bh);
+    }
+  } else if(type==="type"){
+    x.fillStyle="#1d2b30"; x.fillRect(0,0,w,h);
+    x.fillStyle="#dff2f6"; x.textAlign="center"; x.textBaseline="middle";
+    x.font=`800 ${big?90:26}px -apple-system, Helvetica, sans-serif`;
+    x.fillText("Aa",w/2,h/2);
+  } else { // photo: abstract gradient blocks
+    const hue=170+r()*140;
+    const g=x.createLinearGradient(0,0,w,h);
+    g.addColorStop(0,`hsl(${hue},38%,${big?68:62}%)`);
+    g.addColorStop(1,`hsl(${hue+40},44%,38%)`);
+    x.fillStyle=g; x.fillRect(0,0,w,h);
+    for(let i=0;i<(big?7:3);i++){
+      x.fillStyle=`hsla(${hue+r()*60},50%,${25+r()*55}%,.55)`;
+      const rw=(.2+r()*.5)*w, rh=(.15+r()*.4)*h;
+      x.fillRect(r()*(w-rw),r()*(h-rh),rw,rh);
+    }
+  }
+}
+
+/* person "photo" header: gradient + initials */
+function drawPortrait(canvas,p){
+  const dpr=window.devicePixelRatio||1;
+  const w=canvas.clientWidth, h=canvas.clientHeight;
+  canvas.width=w*dpr; canvas.height=h*dpr;
+  const x=canvas.getContext("2d"); x.scale(dpr,dpr);
+  const c=avaColor(p.id);
+  const g=x.createLinearGradient(0,0,0,h);
+  g.addColorStop(0,c); g.addColorStop(1,"#1d2b30");
+  x.fillStyle=g; x.fillRect(0,0,w,h);
+  x.fillStyle="rgba(255,255,255,.16)";
+  x.beginPath(); x.arc(w/2,h*.42,Math.min(w,h)*.26,0,7); x.fill();
+  x.fillStyle="#fff"; x.textAlign="center"; x.textBaseline="middle";
+  x.font="800 44px -apple-system, Helvetica, sans-serif";
+  x.fillText(initials(p.name),w/2,h*.42);
+  x.font="12px Menlo, monospace"; x.fillStyle="rgba(255,255,255,.75)";
+  x.fillText("DEMO-PROFIL",w/2,h*.42+52);
+}
+
+/* ================= navigation ================= */
+function enter(){ $("scr-login").classList.remove("on"); $("nav").style.display="flex"; go("find"); }
+function go(tab){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));
+  $("scr-"+tab).classList.add("on");
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.tab===tab));
+  if(tab==="chat"){ $("chatdot").classList.remove("show"); renderThreads(); }
+  if(tab==="me") renderMe();
+}
+document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()=>go(b.dataset.tab)));
+
+/* ================= deck ================= */
+let order=[], activeFilter=null;
+const FILTERS=[["Alle",null],["Musik","musik"],["Foto","foto"],["Design","design"],["Video","video"]];
+const fc=$("filterchips");
+FILTERS.forEach(([lbl,val],i)=>{
+  const c=document.createElement("button");
+  c.className="chip"+(i===0?" on":""); c.textContent=lbl;
+  c.onclick=()=>{ activeFilter=val; [...fc.children].forEach(x=>x.classList.remove("on")); c.classList.add("on"); buildOrder(); renderDeck(); };
+  fc.appendChild(c);
+});
+$("q").addEventListener("input",()=>{ buildOrder(); renderDeck(); });
+
+function buildOrder(){
+  const q=$("q").value.trim().toLowerCase();
+  order=PEOPLE.filter(p=>{
+    const hay=(p.role+" "+p.area).toLowerCase();
+    if(activeFilter && !hay.includes(activeFilter)) return false;
+    if(q && !hay.includes(q) && !p.name.toLowerCase().includes(q)) return false;
+    return true;
+  }).map(p=>p.id);
+}
+
+function buildCard(p){
+  const el=document.createElement("div");
+  el.className="pcard";
+  const b=BADGE[p.badge];
+  el.innerHTML=`
+    <div class="photo"><canvas></canvas></div>
+    <div class="info">
+      <div class="who">${p.name}</div>
+      <div class="role">${p.role}</div>
+      <div class="pills">
+        <span class="pill">💼 ${p.exp}</span>
+        <span class="pill">🎓 ${p.edu}</span>
+        <span class="pill ${b.cls}">📅 ${b.label}</span>
+      </div>
+      <div class="folio"></div>
+      <div class="card-actions">
+        <button class="btn more">Se profil</button>
+        <button class="btn reach">Ræk ud</button>
+      </div>
+    </div>`;
+  const folio=el.querySelector(".folio");
+  p.folio.forEach((f)=>{
+    const btn=document.createElement("button");
+    btn.title=f.cap; btn.setAttribute("aria-label",f.cap);
+    const cv=document.createElement("canvas");
+    btn.appendChild(cv);
+    btn.onclick=(e)=>{ e.stopPropagation(); openStory(f); };
+    folio.appendChild(btn);
+  });
+  el.querySelector(".reach").onclick=(e)=>{ e.stopPropagation(); openPitch(p); };
+  el.querySelector(".more").onclick=(e)=>{ e.stopPropagation(); toast(p.desc); };
+  return el;
+}
+
+const deck=$("deck");
+function renderDeck(){
+  deck.innerHTML="";
+  if(!order.length){ deck.innerHTML=`<div class="empty">Ingen profiler matcher din søgning endnu.<br>Prøv et bredere arbejdsområde.</div>`; return; }
+  order.slice(0,3).forEach((id)=>deck.appendChild(buildCard(PEOPLE.find(p=>p.id===id))));
+  layoutDeck();
+  [...deck.children].forEach((c,i)=>{
+    const p=PEOPLE.find(x=>x.id===order[i]);
+    drawPortrait(c.querySelector(".photo canvas"),p);
+    const cvs=c.querySelectorAll(".folio canvas");
+    p.folio.forEach((f,j)=>drawArt(cvs[j],f.type,f.seed,false));
+  });
+  attachDrag(deck.children[0]);
+}
+function layoutDeck(){
+  [...deck.children].forEach((c,i)=>{
+    if(c.classList.contains("dragging")) return;
+    c.style.transform=`translateY(${i*-8}px) scale(${1-i*.035})`;
+    c.style.zIndex=50-i; c.style.opacity=i>1?0:1;
+  });
+}
+function browse(dir){
+  const top=deck.children[0];
+  if(!top||!order.length) return;
+  top.style.transform=`translateX(${dir*480}px) rotate(${dir*14}deg)`; top.style.opacity=0;
+  setTimeout(()=>{ order.push(order.shift()); renderDeck(); },260);
+}
+function attachDrag(card){
+  if(!card||card.classList.contains("empty")) return;
+  let sx=0,dx=0,drag=false;
+  card.addEventListener("pointerdown",(e)=>{
+    if(e.target.closest("button")) return;
+    drag=true; sx=e.clientX; card.classList.add("dragging"); card.setPointerCapture(e.pointerId);
+  });
+  card.addEventListener("pointermove",(e)=>{
+    if(!drag) return; dx=e.clientX-sx;
+    card.style.transform=`translateX(${dx}px) rotate(${dx*.05}deg)`;
+  });
+  const rel=()=>{
+    if(!drag) return; drag=false; card.classList.remove("dragging");
+    if(Math.abs(dx)>100) browse(Math.sign(dx)); else layoutDeck();
+    dx=0;
+  };
+  card.addEventListener("pointerup",rel);
+  card.addEventListener("pointercancel",rel);
+}
+document.addEventListener("keydown",(e)=>{
+  if(!$("scr-find").classList.contains("on")) return;
+  if(e.key==="ArrowRight") browse(1);
+  if(e.key==="ArrowLeft") browse(-1);
+});
+
+/* ================= pitch flow ================= */
+let pitchTarget=null;
+function openPitch(p){ pitchTarget=p; $("pitch-to").textContent=`Til ${p.name.split(",")[0]} · ${p.role}. ${p.name.split(",")[0]} skal acceptere din anmodning, før chatten åbner.`; $("pitch-text").value=""; $("cc").textContent="0"; $("pitch").classList.add("on"); }
+function closePitch(){ $("pitch").classList.remove("on"); }
+$("pitch-text").addEventListener("input",()=>$("cc").textContent=$("pitch-text").value.length);
+function sendPitch(){
+  const txt=$("pitch-text").value.trim();
+  if(!txt){ toast("Skriv en kort pitch først."); return; }
+  const p=pitchTarget; closePitch();
+  toast(`Anmodning sendt til ${p.name.split(",")[0]}`);
+  setTimeout(()=>{
+    if(!threads.find(t=>t.id===p.id)){
+      threads.unshift({ id:p.id, person:p, accepted:true,
+        msgs:[ {sys:true, text:`${p.name.split(",")[0]} accepterede din anmodning`}, {me:true,text:txt},
+               {me:false,text:demoReply(p)} ] });
+    }
+    $("chatdot").classList.add("show");
+    toast(`${p.name.split(",")[0]} accepterede din anmodning ✓`);
+    if($("scr-chat").classList.contains("on")) renderThreads();
+  },2800);
+}
+function demoReply(p){
+  const first=p.name.split(",")[0];
+  return {vera:"Hej! Fed timing — jeg sidder faktisk og mangler beats til to nye toplines. Send noget over?",
+    moss:"Yo! Lyder fedt. Smid en reference, så finder vi noget der matcher.",
+    line:"Hej! Tak for beskeden — jeg har ledige datoer i næste måned. Hvad er projektet?",
+    axo:"Hey! Send musikken med — jeg vil altid høre den, før jeg siger ja til artwork.",
+    juno:"Hej hej! Jeg er frisk. Har du en dato og en lokation i tankerne?",
+    sara:"Hej! Send dine stems, så vender jeg tilbage med en tid. 5 dages turnaround."}[p.id]||`Hej! Tak for din besked — lad os snakke. (${first})`;
+}
+
+/* ================= chat ================= */
+let threads=[
+  { id:"moss", person:PEOPLE[1], accepted:true,
+    msgs:[ {sys:true,text:"I blev forbundet i går"},
+      {me:true,text:"Yo! Hørte dit 154 BPM-loop — jeg har en vokal, der ville sidde perfekt på det."},
+      {me:false,text:"Yo! Lyder fedt. Smid en reference, så finder vi noget der matcher."} ] },
+];
+let openThread=null;
+function renderThreads(){
+  const el=$("threads"); el.innerHTML="";
+  if(!threads.length){ el.innerHTML=`<div class="empty" style="position:static">Ingen samtaler endnu.<br>Ræk ud til nogen fra Søg-fanen.</div>`; return; }
+  threads.forEach(t=>{
+    const last=t.msgs[t.msgs.length-1];
+    const d=document.createElement("div");
+    d.className="thread";
+    d.innerHTML=`<div class="ava" style="background:${avaColor(t.id)}">${initials(t.person.name)}</div>
+      <div class="t-main"><div class="t-name">${t.person.name.split(",")[0]} <span style="font-weight:400;color:var(--muted);font-size:12px">· ${t.person.role}</span></div>
+      <div class="t-prev">${last.sys?last.text:last.text}</div></div>
+      <div class="t-tag">✓</div>`;
+    d.onclick=()=>{ openThread=t; renderThread(); go("thread"); };
+    el.appendChild(d);
+  });
+}
+function renderThread(){
+  const t=openThread;
+  $("th-ava").style.background=avaColor(t.id); $("th-ava").textContent=initials(t.person.name);
+  $("th-name").textContent=t.person.name.split(",")[0];
+  $("th-sub").textContent=t.person.role;
+  const m=$("msgs"); m.innerHTML="";
+  t.msgs.forEach(x=>{
+    if(x.sys){ const s=document.createElement("div"); s.className="sysline"; s.textContent=x.text; m.appendChild(s); return; }
+    const d=document.createElement("div");
+    d.className="msg "+(x.me?"me":"them"); d.textContent=x.text;
+    m.appendChild(d);
+  });
+  m.scrollTop=m.scrollHeight;
+}
+function sendMsg(){
+  const v=$("draft").value.trim(); if(!v||!openThread) return;
+  openThread.msgs.push({me:true,text:v}); $("draft").value=""; renderThread();
+}
+$("draft").addEventListener("keydown",(e)=>{ if(e.key==="Enter") sendMsg(); });
+
+/* ================= story viewer + lyd ================= */
+let audioCtx=null, audioTimer=null;
+function openStory(f){
+  $("story").classList.add("on");
+  $("story-cap").textContent=f.cap;
+  const cv=$("story-canvas");
+  requestAnimationFrame(()=>drawArt(cv,f.type,f.seed,true));
+  const play=$("story-play");
+  play.style.display=f.type==="audio"?"block":"none";
+  play.textContent="▶";
+  play.onclick=()=>{ if(audioTimer){stopAudio(); play.textContent="▶";} else {startAudio(f.seed); play.textContent="⏸";} };
+}
+function closeStory(){ $("story").classList.remove("on"); stopAudio(); }
+function startAudio(seed){
+  audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+  const r=rng(seed);
+  const scale=[0,3,7,12,14,15,19,22];
+  const root=57+Math.floor(r()*8)-4; // ~A3
+  let i=0;
+  const step=()=>{
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type="triangle";
+    const n=root+scale[[0,2,4,6,5,3,7,1][i%8]];
+    o.frequency.value=440*Math.pow(2,(n-69)/12);
+    g.gain.setValueAtTime(.14,audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+.34);
+    o.connect(g).connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime+.36);
+    i++;
+  };
+  step(); audioTimer=setInterval(step,190);
+}
+function stopAudio(){ if(audioTimer){ clearInterval(audioTimer); audioTimer=null; } }
+
+/* ================= min profil ================= */
+let meProf="producer";
+function renderMe(){
+  const m=ME[meProf];
+  $("me-sub").textContent=m.sub;
+  const sw=$("me-switch"); sw.innerHTML="";
+  [["producer","Producer"],["design","Grafisk designer"]].forEach(([k,lbl])=>{
+    const c=document.createElement("button");
+    c.className="chip"+(k===meProf?" on":""); c.textContent=lbl;
+    c.onclick=()=>{ meProf=k; renderMe(); };
+    sw.appendChild(c);
+  });
+  const pills=$("me-pills"); pills.innerHTML="";
+  m.pills.forEach(([ic,val])=>{
+    const s=document.createElement("span");
+    if(ic===null){ const b=BADGE[val]; s.className="pill "+b.cls; s.textContent="📅 "+b.label; }
+    else { s.className="pill"; s.textContent=ic+" "+val; }
+    pills.appendChild(s);
+  });
+  $("me-desc").textContent=m.desc;
+  const fol=$("me-folio"); fol.innerHTML="";
+  m.folio.forEach(f=>{
+    const btn=document.createElement("button");
+    btn.title=f.cap; btn.setAttribute("aria-label",f.cap);
+    const cv=document.createElement("canvas"); btn.appendChild(cv);
+    btn.onclick=()=>openStory(f);
+    fol.appendChild(btn);
+    requestAnimationFrame(()=>drawArt(cv,f.type,f.seed,false));
+  });
+}
+
+buildOrder(); renderDeck();
+window.addEventListener("resize",()=>{ if($("scr-find").classList.contains("on")) renderDeck(); });
+</script>
