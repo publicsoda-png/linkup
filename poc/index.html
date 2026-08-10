@@ -339,6 +339,8 @@
         <div class="pills" id="me-pills"></div>
         <div class="prof-desc" id="me-desc"></div>
         <div class="folio" id="me-folio"></div>
+        <button class="btn ghost me-edit-btn" onclick="$('folio-file').click()">➕ Tilføj værk</button>
+        <input type="file" id="folio-file" accept="image/*,audio/*,video/*" hidden>
         <button class="btn ghost me-edit-btn" onclick="openEdit()">✏️ Redigér profil</button>
       </div>
       <div class="prof-note"><strong>Flere profiler, én konto.</strong> Skift mellem dine professioner ovenfor — hver profil har sine egne bulletpoints og sin egen portfolio, og vises kun for dem, der søger netop dét.</div>
@@ -437,10 +439,14 @@
         <canvas id="story-canvas"></canvas>
         <img id="story-img" alt="" style="display:none">
         <video id="story-video" style="display:none" playsinline loop></video>
+        <audio id="story-audio" controls style="display:none;position:absolute;left:8px;right:8px;bottom:8px;width:calc(100% - 16px)"></audio>
         <button class="playbtn" id="story-play" style="display:none" aria-label="Afspil">▶</button>
       </div>
       <div class="cap" id="story-cap"></div>
-      <button class="close-x" style="margin:0 auto" onclick="closeStory()" aria-label="Luk">✕</button>
+      <div style="display:flex;gap:12px;align-items:center;justify-content:center">
+        <button class="close-x" onclick="closeStory()" aria-label="Luk">✕</button>
+        <button class="link-btn" id="story-del" style="display:none;color:#ff9d9d">Slet værk</button>
+      </div>
     </div>
   </div>
 
@@ -799,14 +805,28 @@ $("draft").addEventListener("keydown",(e)=>{ if(e.key==="Enter") sendMsg(); });
 
 /* ================= story viewer + lyd ================= */
 let audioCtx=null, audioTimer=null;
-function openStory(f){
+function openStory(f,own){
   $("story").classList.add("on");
   $("story-cap").textContent=f.cap;
-  const cv=$("story-canvas"), im=$("story-img"), vid=$("story-video"), play=$("story-play");
-  cv.style.display="none"; im.style.display="none"; vid.style.display="none"; play.style.display="none";
+  const cv=$("story-canvas"), im=$("story-img"), vid=$("story-video"), au=$("story-audio"), play=$("story-play"), del=$("story-del");
+  cv.style.display="none"; im.style.display="none"; vid.style.display="none"; au.style.display="none"; play.style.display="none";
+  del.style.display=own?"block":"none";
+  if(own){
+    del.onclick=()=>{
+      if(!confirm(`Slet "${f.cap}" fra din portfolio?`)) return;
+      const m=meData[meProf], i=m.folio.indexOf(f);
+      if(i>-1){ m.folio.splice(i,1); saveState(); renderMe(); }
+      closeStory(); toast("Værk slettet");
+    };
+  }
   if(f.src && f.type==="video"){
     vid.src=f.src; vid.style.display="block"; vid.muted=false;
     vid.play().catch(()=>{ vid.muted=true; vid.play().catch(()=>{}); });
+  } else if(f.src && f.type==="audio"){
+    cv.style.display="block";
+    requestAnimationFrame(()=>drawArt(cv,"audio",f.seed||42,true));
+    au.src=f.src; au.style.display="block";
+    au.play().catch(()=>{});
   } else if(f.src){
     im.src=f.src; im.style.display="block";
   } else {
@@ -821,6 +841,7 @@ function openStory(f){
 function closeStory(){
   $("story").classList.remove("on"); stopAudio();
   const vid=$("story-video"); vid.pause(); vid.removeAttribute("src"); vid.load();
+  const au=$("story-audio"); au.pause(); au.removeAttribute("src");
 }
 function startAudio(seed){
   audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
@@ -877,7 +898,7 @@ function renderMe(){
     const btn=document.createElement("button");
     btn.title=f.cap; btn.setAttribute("aria-label",f.cap);
     folioThumb(btn,f);
-    btn.onclick=()=>openStory(f);
+    btn.onclick=()=>openStory(f,true);
     fol.appendChild(btn);
   });
 }
@@ -942,6 +963,45 @@ function saveEdit(){
   saveState(); renderMe(); closeEdit(); toast(edNew?"Profil oprettet ✓":"Profil gemt ✓");
 }
 
+/* portfolio-upload */
+function fileToData(f){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(f); }); }
+function shrinkImage(f,maxside,q){
+  return new Promise((res,rej)=>{
+    const img=new Image();
+    img.onload=()=>{
+      const s=Math.min(1,maxside/Math.max(img.width,img.height));
+      const cv=document.createElement("canvas");
+      cv.width=Math.round(img.width*s); cv.height=Math.round(img.height*s);
+      cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);
+      URL.revokeObjectURL(img.src);
+      res(cv.toDataURL("image/jpeg",q));
+    };
+    img.onerror=rej;
+    img.src=URL.createObjectURL(f);
+  });
+}
+$("folio-file").addEventListener("change",async(e)=>{
+  const file=e.target.files[0]; e.target.value="";
+  if(!file) return;
+  const m=meData[meProf];
+  const cap=file.name.replace(/\.[^.]+$/,"");
+  try{
+    let item;
+    if(file.type.startsWith("image/")){
+      item={type:"img",cap:cap,src:await shrinkImage(file,900,.8)};
+    } else if(file.type.startsWith("audio/")){
+      if(file.size>2500000){ toast("Lydfilen er for stor (max 2,5 MB i prototypen)."); return; }
+      item={type:"audio",cap:cap,src:await fileToData(file)};
+    } else if(file.type.startsWith("video/")){
+      if(file.size>3500000){ toast("Videoen er for stor (max 3,5 MB i prototypen)."); return; }
+      item={type:"video",cap:cap,src:await fileToData(file)};
+    } else { toast("Filtypen understøttes ikke."); return; }
+    m.folio.push(item);
+    if(!saveState()){ m.folio.pop(); toast("Ikke plads i prototypens lokale lager — slet et værk først."); return; }
+    renderMe(); toast("Værk tilføjet ✓");
+  }catch{ toast("Kunne ikke læse filen."); }
+});
+
 /* onboarding */
 let obStep=1, obBadge="open";
 function openOb(){ obStep=1; obBadge="open"; showObStep(); $("obsheet").classList.add("on"); }
@@ -984,7 +1044,7 @@ function obNext(){
 /* ================= persistens + PWA ================= */
 const STORE="linkup-state-v1";
 function saveState(){
-  try{ localStorage.setItem(STORE, JSON.stringify({ threads, meProf, meName, meData })); }catch{}
+  try{ localStorage.setItem(STORE, JSON.stringify({ threads, meProf, meName, meData })); return true; }catch{ return false; }
 }
 try{
   const saved=JSON.parse(localStorage.getItem(STORE));
