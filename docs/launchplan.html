@@ -28,6 +28,8 @@
   ul{margin:10px 0 0;padding-left:20px}
   li{margin-bottom:7px}
   li::marker{color:var(--teal)}
+  .done{color:var(--muted)}
+  .done::before{content:"✓ ";color:var(--teal-deep);font-weight:800}
   .why{background:var(--sage-soft);border:2px solid var(--ink);border-radius:10px;padding:8px 12px;font-size:13.5px;margin-top:12px}
   .why b{color:var(--teal-deep)}
   .tag{display:inline-block;background:var(--sage);border:2px solid var(--ink);border-radius:999px;padding:1px 10px;font-size:11.5px;font-weight:800;box-shadow:2px 2px 0 var(--ink);margin:2px 4px 2px 0}
@@ -49,62 +51,76 @@
     <div class="chip"><svg viewBox="0 0 100 160" aria-hidden="true"><path d="M32 80 L32 48 A18 18 0 0 1 68 48 L68 80" fill="none" stroke="#FDE262" stroke-width="24"/><path d="M32 80 L32 112 A18 18 0 0 0 68 112 L68 80" fill="none" stroke="#005F5A" stroke-width="24"/></svg></div>
     <h1>Launchplan</h1>
   </header>
-  <p class="sub">Fra PoC til App Store — hurtigste vej</p>
+  <p class="sub">Bygget af os to, her i chatten — du klarer kun betalinger &amp; logins</p>
 
-  <div class="goal"><small>Målet</small>Link.Up i App Store om <b>4–6 uger</b> — én kodebase (webappen vi allerede har), Capacitor som iOS-indpakning, Firebase som backend.</div>
+  <div class="goal"><small>Sådan arbejder vi</small>Én kodebase (webappen vi allerede har) → pakkes som ægte iOS-app → kører på <b>vores egen server</b>, som vi ejer 100 %. Ingen store cloud-platforme, ingen vendor lock-in. Jeg skriver al kode, tester og retter; du kigger, mærker efter og godkender.</div>
 
   <div class="fase">
-    <div class="fasetop"><span class="num">1</span><h2>Fundament</h2><span class="uge">Uge 1</span></div>
+    <div class="fasetop"><span class="num">1</span><h2>Appen bygges færdig</h2><span class="uge">Nu · uge 1–2</span></div>
     <ul>
-      <li><b>Apple Developer-konto oprettes NU</b> (99 USD/år) — verificering kan tage flere dage, så den skal i gang først.</li>
-      <li>Domæne købes og landing page flyttes til Netlify — så virker ventelisten (GitHub Pages kan ikke modtage formularer). Kræver kun <code>! netlify login</code>.</li>
-      <li>Firebase-projekt oprettes (Auth + Firestore + Storage). Kræver <code>! firebase login</code>.</li>
+      <li class="done">Profil-redigering: navn, titel, erfaring, uddannelse, tilgængeligheds-badge, beskrivelse</li>
+      <li class="done">Tydelige luk-knapper + luk ved tryk udenfor</li>
+      <li class="done">Installérbar på hjemmeskærmen, husker alt mellem åbninger</li>
+      <li>Onboarding: opret konto → byg din første profil trin for trin</li>
+      <li>Opret/slet professioner frit (ikke kun to faste)</li>
+      <li>Egen portfolio: læg billeder og lyd op fra telefonen</li>
+      <li>Beskeder: ulæst-prik, tidsstempler, bedre chatfølelse</li>
+      <li>Tomme tilstande, fejlbeskeder og micro-polish overalt</li>
     </ul>
-    <div class="why"><b>Hvorfor først:</b> de tre ting har ventetid eller login, som kun du kan klare — alt andet kan jeg bygge imens.</div>
+    <div class="why"><b>Kræver ingenting af dig:</b> alt i denne fase kan jeg bygge og deploye direkte — du tester bare på din iPhone og siger, hvad der føles forkert.</div>
   </div>
 
   <div class="fase">
-    <div class="fasetop"><span class="num">2</span><h2>Rigtig backend i appen</h2><span class="uge">Uge 1–2</span></div>
+    <div class="fasetop"><span class="num">2</span><h2>Vores egen server</h2><span class="uge">Uge 2–3</span></div>
     <ul>
-      <li>Login med Apple / Google / e-mail (Firebase Auth — "Sign in with Apple" er et App Store-krav, når andre logins tilbydes).</li>
-      <li>Rigtige profiler i Firestore: flere professioner pr. konto, bulletpoints (erfaring, uddannelse, tilgængeligheds-badge).</li>
-      <li>Portfolio-upload til Storage — billede, video og lyd i story-cirklerne.</li>
-      <li>Søgning på titel/arbejdsområde + bladre-dækket kobles på rigtige brugere.</li>
-      <li>Pitch-anmodning (600 tegn) → accept → realtime-chat (Firestore listeners).</li>
-      <li>Klientprofiler: kan række ud, kan ikke findes i søgning.</li>
+      <li>Backend = <b>PocketBase</b>: open source, ét enkelt program, alle data hos os. Kører på en lille lejet maskine (Fly.io) — jeg styrer alt fra terminalen.</li>
+      <li>Rigtigt login: e-mail + Sign in with Apple (Apple-krav når man har login)</li>
+      <li>Rigtige profiler og søgning — bladre-dækket viser ægte brugere</li>
+      <li>Ræk ud-anmodning → accept → rigtig chat i realtid</li>
+      <li>Portfolio-filer (billede/video/lyd) gemmes på serveren</li>
     </ul>
-    <div class="why"><b>Genbrug:</b> hele UI'et findes allerede i PoC'et — det er "kun" datalaget, der skiftes fra demo-data til Firebase.</div>
+    <div class="why"><b>Dit eneste bidrag:</b> opret en Fly.io-konto med betalingskort og skriv <code>! fly auth login</code> — resten gør jeg.</div>
   </div>
 
   <div class="fase">
-    <div class="fasetop"><span class="num">3</span><h2>App Store-krav</h2><span class="uge">Uge 3</span></div>
+    <div class="fasetop"><span class="num">3</span><h2>App Store-krav</h2><span class="uge">Uge 3–4</span></div>
     <ul>
-      <li><b>Moderation</b>: rapportér indhold + blokér bruger + flag-kø. Apple afviser konsekvent UGC-apps uden dette.</li>
-      <li>Vilkår (EULA) + privatlivspolitik + konto-sletning i appen (også et krav).</li>
-      <li>Push-notifikationer ved ny pitch og ny besked (FCM).</li>
-      <li>Capacitor-wrap: webappen pakkes som iOS-app, ikoner/splash fra det officielle ikon.</li>
+      <li>Rapportér indhold + blokér bruger + moderations-kø (Apple afviser sociale apps uden)</li>
+      <li>Vilkår + privatlivspolitik + "slet min konto" i appen (også krav)</li>
+      <li>Capacitor-indpakning: webappen bliver en ægte iOS-app med det officielle ikon</li>
+      <li>Push-beskeder ved ny anmodning/besked — direkte via Apples eget system fra vores server, ingen tredjepart</li>
+    </ul>
+    <div class="why"><b>Dit bidrag:</b> opret Apple Developer-konto (700 kr/år) på developer.apple.com — start den NU, verificering kan tage dage.</div>
+  </div>
+
+  <div class="fase">
+    <div class="fasetop"><span class="num">4</span><h2>Test &amp; debug</h2><span class="uge">Uge 4–5</span></div>
+    <ul>
+      <li>TestFlight på din iPhone — appen som den bliver i App Store</li>
+      <li>Min faste test-checkliste før hver version: alle flows, offline, langsomt netværk, små/store skærme</li>
+      <li>10–20 rigtige kreative fra ventelisten inviteres som beta-testere</li>
+      <li>Du behøver ikke tale teknik: sig bare "det her føles forkert" — jeg oversætter til rettelser</li>
     </ul>
   </div>
 
   <div class="fase">
-    <div class="fasetop"><span class="num">4</span><h2>Beta &amp; indsendelse</h2><span class="uge">Uge 4–6</span></div>
+    <div class="fasetop"><span class="num">5</span><h2>Launch</h2><span class="uge">Uge 5–6</span></div>
     <ul>
-      <li>TestFlight-beta med 10–20 rigtige kreative fra ventelisten — ret det, der driller mest.</li>
-      <li>Skærmbilleder, App Store-tekst og keywords (sticker-stilen gør screenshots nemme at få til at skille sig ud).</li>
-      <li>Indsend til review — regn med 1–2 afvisningsrunder (typisk UGC-detaljer); buffer er lagt ind.</li>
-      <li><b>Launch mod ventelisten</b> — den har samlet navne siden uge 1.</li>
+      <li>Screenshots og App Store-tekst i sticker-stilen (jeg laver udkast, du godkender)</li>
+      <li>Indsendelse til review — buffer til 1–2 afvisningsrunder (helt normalt for sociale apps)</li>
+      <li>Launch mod ventelisten fra landing pagen</li>
     </ul>
   </div>
 
   <div class="grid">
     <div class="box">
-      <h3>Budget (år 1)</h3>
+      <h3>Budget</h3>
       <table>
         <tr><td>Apple Developer</td><td>≈ 700 kr/år</td></tr>
+        <tr><td>Server (Fly.io)</td><td>≈ 0–40 kr/md</td></tr>
         <tr><td>Domæne</td><td>≈ 100 kr/år</td></tr>
-        <tr><td>Netlify + Firebase (gratis-tier)</td><td>0 kr</td></tr>
-        <tr><td>Firebase efter launch (pay-as-you-go)</td><td>0–150 kr/md</td></tr>
-        <tr><td>I alt til launch</td><td>≈ 800 kr</td></tr>
+        <tr><td>Landing page-hosting</td><td>0 kr</td></tr>
+        <tr><td>I alt til launch</td><td>≈ 850 kr</td></tr>
       </table>
     </div>
     <div class="box">
@@ -112,16 +128,16 @@
       <span class="tag">Fuldt UI + designsystem</span>
       <span class="tag">Officielt logo &amp; ikon</span>
       <span class="tag">Installérbar PWA</span>
+      <span class="tag">Profil-redigering</span>
       <span class="tag">Landing page</span>
-      <span class="tag">Alle kernefunktioner som flow</span>
       <span class="tag">GitHub-hosting</span>
     </div>
   </div>
 
   <div class="next">
-    <h3>Næste skridt — kræver dig</h3>
-    Skriv <code>! netlify login</code> og <code>! firebase login</code> i chatten (og start Apple Developer-tilmeldingen på developer.apple.com) — så bygger jeg fase 2, mens verificeringen kører.
+    <h3>Det eneste, der kræver dig lige nu</h3>
+    Start Apple Developer-tilmeldingen på developer.apple.com (verificeringen har ventetid). Alt i fase 1 bygger jeg videre på uden at vente på noget.
   </div>
 
-  <footer>Link.Up · plan pr. 10. august 2026</footer>
+  <footer>Link.Up · plan pr. 10. august 2026 · v2</footer>
 </div>
