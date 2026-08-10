@@ -8,7 +8,7 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 /* ================= Link.Up tema (gul / sort / grøn) ================= */
 const C = {
-  bg: "#f8da54", teal: "#175f55", tealDark: "#114a42", sage: "#83c2a2",
+  bg: "#fde262", teal: "#175f55", tealDark: "#114a42", sage: "#83c2a2",
   soft: "#ddefe4", ink: "#1c1c1c", muted: "#6e6b5c", card: "#ffffff",
   ok: "#2c8c74", warn: "#d99a2b", hot: "#c95f7b",
 };
@@ -77,10 +77,9 @@ const Btn = ({ label, onPress, kind = "primary", style }) => (
     <Text style={[s.btnText, kind === "primary" ? { color: "#fff" } : { color: C.ink }]}>{label}</Text>
   </Pressable>
 );
+const LOGO_IMG = require("./assets/brand-logo.png");
 const Logo = ({ size = 26 }) => (
-  <Text style={[s.logo, { fontSize: size }]}>
-    Li<Text style={{ color: C.sage }}>n</Text>k.<Text style={{ color: C.teal }}>Up</Text>
-  </Text>
+  <Image source={LOGO_IMG} style={{ height: size * 1.6, width: size * 2.04 }} resizeMode="contain" />
 );
 
 /* ================= profilkort + swipe-dæk ================= */

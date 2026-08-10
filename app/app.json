@@ -21,8 +21,10 @@
       "favicon": "./assets/favicon.png"
     },
     "splash": {
-      "backgroundColor": "#f8da54"
+      "image": "./assets/splash-icon.png",
+      "backgroundColor": "#fde262",
+      "resizeMode": "contain"
     },
-    "backgroundColor": "#f8da54"
+    "backgroundColor": "#fde262"
   }
 }
